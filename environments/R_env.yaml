@@ -15,3 +15,5 @@ dependencies:
   - r-rsconnect
   - r-dplyr
   - r-tidyr
+  - r-argparse
+  - r-arrow
