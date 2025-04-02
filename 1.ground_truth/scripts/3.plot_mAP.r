@@ -48,3 +48,44 @@ map_plot <- (
 )
 ggsave("../figures/mean_average_precision_by_dose.png", plot=map_plot, width=6, height=4)
 map_plot
+
+# write the ground truth map_df to a csv file
+ground_truth_df <- data.frame(
+    Metadata_dose = map_df$Metadata_dose,
+    mean_average_precision = map_df$mean_average_precision
+)
+ground_truth_df$apoptosis <- "control"
+# change to control negative or positive
+ground_truth_df <- ground_truth_df %>% mutate(
+    apoptosis = ifelse(mean_average_precision > 0.8, "positive", "negative")
+)
+# drop the mean_average_precision column
+ground_truth_df <- ground_truth_df %>% select(-mean_average_precision)
+# sort by Metadata_dose
+# add the 0 dose row
+ground_truth_df <- ground_truth_df %>% add_row(
+    Metadata_dose = "0",
+    apoptosis = "control"
+)
+ground_truth_df$Metadata_dose <- factor(
+    ground_truth_df$Metadata_dose,
+    levels = c(
+        "0",
+        "0.61",
+        "1.22",
+        "2.44",
+        "4.88",
+        "9.77",
+        "19.53",
+        "39.06",
+        "78.13",
+        "156.25"
+    )
+)
+
+ground_truth_df
+write.csv(
+    ground_truth_df,
+    file = "../data/0.ground_truth/ground_truth.csv",
+    row.names = FALSE
+)
