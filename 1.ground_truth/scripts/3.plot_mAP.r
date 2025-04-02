@@ -46,4 +46,5 @@ map_plot <- (
         legend.position = "none"
     )
 )
+ggsave("../figures/mean_average_precision_by_dose.png", plot=map_plot, width=6, height=4)
 map_plot

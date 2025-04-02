@@ -12,6 +12,11 @@ intensity_features_file_path <- file.path(
     "../data/0.ground_truth/annexinv_intensity_features_df.parquet"
 )
 
+figures_dir <- file.path("../figures/")
+if (!dir.exists(figures_dir)) {
+    dir.create(figures_dir)
+}
+
 # Read the intensity features
 intensity_features_df <- arrow::read_parquet(intensity_features_file_path)
 
@@ -55,10 +60,33 @@ intensity_features_df$Metadata_dose <- factor(
     )
 
 # plot the intensity_features_df
+width <- 10
+height <- 10
+options(repr.plot.width = width, repr.plot.height = height)
 intensity_plot <- (
     ggplot(intensity_features_df, aes(x = Metadata_dose, y = value, fill = Metadata_dose))
     + geom_boxplot(aes(group=Metadata_dose), outlier.size = 0.5, outlier.colour = "gray")
+    + labs(
+        x = "Dose (µM)",
+        y = "Intensity",
+    )
     + facet_wrap(~ feature, scales = "free_y", ncol = 2)
+        + theme(
+        axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        plot.title = element_text(size = 14, hjust = 0.5),
+        legend.position = "none",
+        strip.text = element_text(size = 14)
+    )
+)
+ggsave(
+    file.path(figures_dir, "intensity_features_boxplot.png"),
+    plot = intensity_plot,
+    width = width,
+    height = height,
+    dpi = 600
 )
 intensity_plot
 
@@ -80,13 +108,30 @@ tukey_plot <- (
     + geom_errorbar(aes(xmin = lower, xmax = upper), width = 0.2)
     + geom_hline(yintercept = 0, linetype = "dashed", color = "red")
     + labs(
-        title = "Tukey Post Hoc Test Results",
         x = "Group Comparison",
         y = "Mean Difference"
     )
     + theme_bw()
     + theme(axis.text.x = element_text(angle = 45, hjust = 1))
     + facet_wrap(feature ~ ., scales = "free_y")
+
+        + facet_wrap(~ feature, scales = "free_y", ncol = 2)
+        + theme(
+        axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        plot.title = element_text(size = 14, hjust = 0.5),
+        legend.position = "none",
+        strip.text = element_text(size = 14)
+    )
+)
+ggsave(
+    file.path(figures_dir, "tukey_plot.png"),
+    plot = tukey_plot,
+    width = width,
+    height = height,
+    dpi = 600
 )
 tukey_plot
 
