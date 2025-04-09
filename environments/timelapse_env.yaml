@@ -11,6 +11,7 @@ dependencies:
   - conda-forge::ipykernel
   - conda-forge::pyarrow
   - conda-forge::pytorch
+  - conda-forge::numpy<2.0
   - conda-forge::torchvision
   - conda-forge::pyarrow
   - conda-forge::fastparquet
