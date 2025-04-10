@@ -105,16 +105,16 @@ feature_set_dict = {
 
 
 umap_model = umap.UMAP(
-    n_neighbors=4,
+    n_neighbors=15,  # higher number focuses on global structure
     n_components=2,
     metric="euclidean",
     random_state=0,
-    min_dist=0.5,
-    spread=0.8,
+    min_dist=0.1,  # lower number means tighter points
+    spread=0.5,  #
 )
 
 
-# In[ ]:
+# In[6]:
 
 
 for feature_set_name, feature_set in tqdm.tqdm(feature_set_dict.items()):
