@@ -75,7 +75,7 @@ shuffle_options = [False, True]
 # In[6]:
 
 
-# This loops through the CP, scDIONO, and CP_scDINO feature sets and calculates the mean average precision for each timepoint
+# This loops through the CP, scDINO, and CP_scDINO feature sets and calculates the mean average precision for each timepoint
 for shuffle in shuffle_options:
 
     for feature_set_name, feature_set in feature_set_dict.items():
