@@ -6,20 +6,6 @@ __pycache__/
 data/
 
 # snakemake output
-1.scDINO_run/.snakemake/
+4.mAP_analysis/data/*
+3.generate_umaps/results/*
 
-# scDINO output
-1.scDINO_run/outputdir/
-1.scDINO_run/logs/
-
-# attention images
-1.scDINO_run/outputdir/test_run/attention_images/
-
-# env vars
-2.scDINO_processing/set_up_env_vars.sh
-2.scDINO_processing/set_up_env_vars.r
-2.scDINO_processing/notebooks/4.deploy_shiny_app.ipynb
-2.scDINO_processing/scripts/4.deploy_shiny_app.r
-
-# shiny files:
-2.scDINO_processing/temporal_shiny_app/rsconnect/
