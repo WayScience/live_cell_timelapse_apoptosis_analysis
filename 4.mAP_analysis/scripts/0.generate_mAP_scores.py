@@ -57,8 +57,8 @@ CP_columns = df.drop(columns=metadata_columns + scDINO_columns).columns
 CP_scDINO_columns = df.drop(metadata_columns, axis=1).columns
 
 feature_set_dict = {
-    # "scDINO": scDINO_columns,
-    # "CP": CP_columns,
+    "scDINO": scDINO_columns,
+    "CP": CP_columns,
     "CP_scDINO": CP_scDINO_columns,
 }
 
@@ -109,7 +109,11 @@ for shuffle in shuffle_options:
             neg_sameby = []
             neg_diffby = ["Metadata_dose", reference_col]
             metadata = df_activity.filter(regex="Metadata")
-            profiles = df_activity.filter(regex="^(?!Metadata)").values
+            profiles = df_activity.filter(regex="^(?!Metadata)")
+            # drop the nans from the profiles
+            profiles = profiles.dropna(axis=0)
+            metadata = metadata.loc[profiles.index]
+            profiles = profiles.values
             # suppress the warning
             activity_ap = map.average_precision(
                 metadata, profiles, pos_sameby, pos_diffby, neg_sameby, neg_diffby
