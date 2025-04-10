@@ -51,7 +51,7 @@ def fit_umap_to_the_first_timepoint(
     first_time = df[timepoint_column].min()
     first_timepoint_subset_df = df[df[timepoint_column] == first_time]
 
-    # get the
+    # Prepare the first timepoint subset by dropping metadata columns, selecting feature columns, and removing rows with missing values
     first_timepoint_subset_df = first_timepoint_subset_df.drop(metadata_columns, axis=1)
     first_timepoint_subset_df = first_timepoint_subset_df[feature_columns]
     first_timepoint_subset_df = first_timepoint_subset_df.dropna(axis=0)
