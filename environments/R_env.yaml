@@ -13,4 +13,5 @@ dependencies:
   - r-rsconnect
   - r-dplyr
   - r-tidyr
+  - bioconda::bioconductor-complexheatmap
   - r-arrow
