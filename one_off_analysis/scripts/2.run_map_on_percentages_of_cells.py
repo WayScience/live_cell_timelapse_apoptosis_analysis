@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 sys.path.append("../utils")
 from mAP_utils import run_mAP_across_time
 
-# In[2]:
+# In[ ]:
 
 
 if not in_notebook:
@@ -93,6 +93,8 @@ if shuffle:
         if col == "Metadata_Time":
             continue
         if col == "Metadata_dose":
+            continue
+        if col == "Metadata_Well":
             continue
         subset_df[col] = np.random.permutation(subset_df[col])
 metadata_cols = [cols for cols in subset_df.columns if "Metadata" in cols]
