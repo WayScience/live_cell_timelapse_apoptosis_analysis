@@ -168,7 +168,6 @@ ht_opt$message = FALSE
 heatmap <- Heatmap(
     mat,
     cluster_rows = TRUE,    # Cluster rows
-    # cluster_columns = FALSE, # Cluster columns
     show_row_names = FALSE,  # Show row names
     show_column_names = TRUE, # Show column names
     column_names_gp = gpar(fontsize = 16), # Column name label formatting

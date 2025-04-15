@@ -32,8 +32,6 @@ df <- arrow::read_parquet(profile_file_path) %>% arrange(Metadata_Well)
 df <- df %>%
     left_join(profile, by = c("Metadata_Well" = "Metadata_Well"), relationship ="many-to-many")
 # transform the data to standard scalar (-1, 1) format
-
-
 for (i in 1:ncol(df)) {
     # make sure the column is not metadata
     if (grepl("Metadata_", colnames(df)[i])) {
@@ -211,7 +209,6 @@ for (dose in unique(df$Metadata_dose)) {
 
     # get the first dose
     single_dose_df <- df %>%
-        # filter(Metadata_dose == min(Metadata_dose)) %>%
         filter(Metadata_dose == dose) %>%
         group_by(Metadata_Time) %>%
         select(-Metadata_Well, -Metadata_dose) %>%
@@ -235,7 +232,6 @@ for (dose in unique(df$Metadata_dose)) {
             col = col_fun,
             show_row_names = FALSE,
             show_column_names = FALSE,
-            # right_annotation = ,
             cluster_columns = FALSE,
             column_names_gp = gpar(fontsize = 16), # Column name label formatting
             row_names_gp = gpar(fontsize = 14),
@@ -262,7 +258,6 @@ for (dose in unique(df$Metadata_dose)) {
             mat,
             col = col_fun,
             show_row_names = FALSE,
-            # right_annotation = ,
             cluster_columns = FALSE,
             show_column_names = FALSE,
 
@@ -273,7 +268,6 @@ for (dose in unique(df$Metadata_dose)) {
             heatmap_legend_param = list(
                         title = "Feature\nValue",
                         title_position = "topcenter",
-                        # direction = "horizontal",
                         title_gp = gpar(fontsize = 16, angle = 0, fontface = "bold", hjust = 1.0),
                         labels_gp = gpar(fontsize = 16),
                         legend_height = unit(4, "cm"),
