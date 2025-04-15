@@ -40,64 +40,102 @@ plotting_df <- metadata_df %>%
     "Metadata_dose",
     "unique_cell"
     ))
+plotting_df$Metadata_dose <- as.numeric(plotting_df$Metadata_dose)
 plotting_df$values <- 1
+# sort by metadata dose
+plotting_df <- plotting_df %>%
+  arrange(Metadata_dose)
+# drop dose column
 plotting_df <- plotting_df %>%
   select(-Metadata_dose)
+
+
 # pivot wide such that the Metadata_id in the columns
 plotting_df <- plotting_df %>%
   pivot_wider(
     names_from = unique_cell,
     values_from = values
   )
+head(plotting_df)
 
-# get the well names by splitting the column names by _
-well_names <- plotting_df %>%
-  select(-Metadata_Time) %>%
-  colnames() %>%
+# replace NA with 0
+plotting_df[is.na(plotting_df)] <- 0
+# turn the values into characters
+# remove the dose column
+plotting_df$Metadata_dose <- NULL
+# remove the Metadata_Time column
+
+
+# remove the Metadata_Time column
+mat <- t(as.matrix(plotting_df))
+colnames(mat) <- plotting_df$Metadata_Time
+# drop the first row
+mat <- mat[-1, ]
+# add another column that is the sum of the columns
+mat <- as.data.frame(mat)
+# make the values numeric
+mat <- mat %>%
+  mutate(across(where(is.character), as.numeric))
+# add a column that is the sum of the columns
+mat$sum <- rowSums(mat)
+# remove the last column
+# sort the matrix by the sum column
+# remove the last column
+mat <- mat %>%
+  select(-c("sum"))
+# make the values character
+mat <- mat %>%
+  mutate(across(where(is.numeric), as.character))
+# convert to a matrix
+mat <- as.matrix(mat)
+
+rows <- rownames(mat)
+# get only the well names
+well_dose <- rows %>%
   strsplit("_") %>%
-  sapply(function(x) x[2]) %>%
+  sapply(function(x) x[4]) %>%
   as.data.frame() %>%
-  rename(Metadata_Well = ".")
-well_dose <- df %>%
-  select(c("Metadata_dose", "Metadata_Well")) %>%
-  distinct()
-well_names <- well_names %>%
-    left_join(well_dose, by = "Metadata_Well") %>%
-    select(-Metadata_Well)
-well_names$Metadata_dose <- factor(
-    well_names$Metadata_dose,
+rename(Metadata_dose = ".") %>%
+mutate(Metadata_dose = as.character(Metadata_dose))
+
+# convert to a factor
+well_dose$Metadata_dose <- factor(
+    well_dose$Metadata_dose,
     levels = c(
-        "0", "0.61", "1.22", "2.44", "4.88",
-        "9.76", "19.53", "39.06", "78.13", "156.25"
+        "0.0", "0.61", "1.22", "2.44", "4.88",
+        "9.77", "19.53", "39.06", "78.13", "156.25"
     )
 )
+
+
 row_ha <- rowAnnotation(
-    Dose = well_names$Metadata_dose,
+    Dose = well_dose$Metadata_dose,
 
     annotation_legend_param = list(
         title_position = "topcenter",
         title_gp = gpar(fontsize = 16, angle = 0, fontface = "bold", hjust = 0.5),
         labels_gp = gpar(fontsize = 16,
-        # make annotation bar text bigger
-        legend = gpar(fontsize = 16),
-        annotation_name = gpar(fontsize = 16),
-        legend_height = unit(20, "cm"),
-        legend_width = unit(1, "cm"),
-        # make legend taller
-        legend_height = unit(10, "cm"),
-        legend_width = unit(1, "cm"),
-        legend_key = gpar(fontsize = 16)
-        )
+            # make annotation bar text bigger
+            legend = gpar(fontsize = 16),
+            annotation_name = gpar(fontsize = 16),
+            legend_height = unit(20, "cm"),
+            legend_width = unit(1, "cm"),
+            # make legend taller
+            legend_height = unit(10, "cm"),
+            legend_width = unit(1, "cm"),
+            legend_key = gpar(fontsize = 16)
+            )
     ),
+
 
     col = list(
         Dose = c(
-            "0" = "#57F2F2",
+            "0.0" = "#57F2F2",
             "0.61" = "#63D6D6",
             "1.22" = "#65BABA",
             "2.44" = "#68A3A3",
             "4.88" = "#668A8A",
-            "9.76" = "#5E7070",
+            "9.77" = "#5E7070",
             "19.53" = "#4B5757",
             "39.06" = "#2F3D3D",
             "78.13" = "#182424",
@@ -113,44 +151,10 @@ row_ha <- rowAnnotation(
 
 )
 
-# replace NA with 0
-plotting_df[is.na(plotting_df)] <- 0
-# turn the values into characters
-plotting_df <- plotting_df %>%
-  mutate(across(where(is.numeric), as.character))
-
-# remove the Metadata_Time column
-mat <- t(as.matrix(plotting_df))
-colnames(mat) <- plotting_df$Metadata_Time
-# drop the first row
-mat <- mat[-1,]
-
-
-# add another column that is the sum of the columns
-mat <- as.data.frame(mat)
-# convert from character to numeric
-mat <- mat %>%
-  mutate(across(where(is.character), as.numeric))
-# add a column that is the sum of the columns
-mat$sum <- rowSums(mat)
-# remove the last column
-# sort the matrix by the sum column
-mat <- mat %>%
-  arrange(desc(sum))
-# remove the last column
-mat <- mat %>%
-  select(-c("sum"))
-# make the values character
-mat <- mat %>%
-  mutate(across(where(is.numeric), as.character))
-# convert to a matrix
-mat <- as.matrix(mat)
-
-
 
 # make 0 in the matrix Cell Absent and 1 Cell Present but not in the row names or column names
-mat[mat == 0] <- "Cell Absent"
-mat[mat == 1] <- "Cell Present"
+mat[mat == 0.0] <- "Cell Absent"
+mat[mat == 1.0] <- "Cell Present"
 
 colors = structure(
     c("#c8c8c8","#2a2a2a"),
@@ -163,13 +167,13 @@ options(repr.plot.width=width, repr.plot.height=height)
 ht_opt$message = FALSE
 heatmap <- Heatmap(
     mat,
-        cluster_rows = TRUE,    # Cluster rows
-        cluster_columns = TRUE, # Cluster columns
-        show_row_names = FALSE,  # Show row names
-        show_column_names = TRUE, # Show column names
-        column_names_gp = gpar(fontsize = 16), # Column name label formatting
-        row_names_gp = gpar(fontsize = 14),    # Row name label formatting
-        right_annotation = row_ha,
+    cluster_rows = TRUE,    # Cluster rows
+    # cluster_columns = FALSE, # Cluster columns
+    show_row_names = FALSE,  # Show row names
+    show_column_names = TRUE, # Show column names
+    column_names_gp = gpar(fontsize = 16), # Column name label formatting
+    row_names_gp = gpar(fontsize = 14),    # Row name label formatting
+    right_annotation = row_ha,
 
     heatmap_legend_param = list(
                 title = "Track\nBoolean",
@@ -178,8 +182,6 @@ heatmap <- Heatmap(
                 labels_gp = gpar(fontsize = 16),
                 legend_height = unit(6.6, "cm")
                 ),
-        column_dend_height = unit(4, "cm"),
-        row_dend_width = unit(4, "cm"),
         # set color for 0 and 1
         col = colors,
 
