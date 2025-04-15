@@ -11,6 +11,7 @@ dependencies:
   - conda-forge::ipykernel
   - conda-forge::pyarrow
   - conda-forge::pytorch
+  - conda-forge::numpy<2.0
   - conda-forge::torchvision
   - conda-forge::pyarrow
   - conda-forge::fastparquet
@@ -26,3 +27,5 @@ dependencies:
   - conda-forge::colorcet
   - conda-forge::bokeh
   - conda-forge::plotly
+  - pip:
+    - copairs==0.5.0
