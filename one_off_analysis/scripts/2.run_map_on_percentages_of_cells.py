@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import argparse
@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 sys.path.append("../utils")
 from mAP_utils import run_mAP_across_time
 
-# In[ ]:
+# In[2]:
 
 
 if not in_notebook:
@@ -90,6 +90,10 @@ subset_df.reset_index(drop=True, inplace=True)
 if shuffle:
     # permutate the data
     for col in subset_df.columns:
+        if col == "Metadata_Time":
+            continue
+        if col == "Metadata_dose":
+            continue
         subset_df[col] = np.random.permutation(subset_df[col])
 metadata_cols = [cols for cols in subset_df.columns if "Metadata" in cols]
 features_cols = [cols for cols in subset_df.columns if "Metadata" not in cols]
@@ -114,7 +118,7 @@ aggregate_df = pd.merge(
 aggregate_df.head()
 
 
-# In[ ]:
+# In[7]:
 
 
 dict_of_map_dfs = run_mAP_across_time(
