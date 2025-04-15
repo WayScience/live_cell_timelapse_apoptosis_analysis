@@ -5,7 +5,8 @@ __pycache__/
 # raw data
 data/
 
-# snakemake output
 4.mAP_analysis/data/*
 3.generate_umaps/results/*
+
+one_off_analysis/results/*
 
