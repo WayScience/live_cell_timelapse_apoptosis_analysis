@@ -6,27 +6,7 @@
 
 import pathlib
 
-import numpy as np
 import pandas as pd
-from copairs import map
-from copairs.matching import assign_reference_index
-
-# check if in a jupyter notebook
-try:
-    cfg = get_ipython().config
-    in_notebook = True
-except NameError:
-    in_notebook = False
-import warnings
-
-import pycytominer.aggregate
-import tqdm
-
-# Suppress all RuntimeWarnings
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-
-#
-
 
 # In[ ]:
 

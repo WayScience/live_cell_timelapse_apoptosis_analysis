@@ -1,16 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pathlib
 import random
+import sys
+import warnings
 
 import numpy as np
 import pandas as pd
-from copairs import map
-from copairs.matching import assign_reference_index
+import pycytominer.aggregate
+
+# Suppress all RuntimeWarnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+import itertools
+
+sys.path.append("../utils")
+from mAP_utils import run_mAP_across_time
 
 # check if in a jupyter notebook
 try:
@@ -18,17 +26,7 @@ try:
     in_notebook = True
 except NameError:
     in_notebook = False
-import warnings
 
-import pycytominer.aggregate
-
-# Suppress all RuntimeWarnings
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-import itertools
-import sys
-
-sys.path.append("../utils")
-from mAP_utils import run_mAP_across_time
 
 # In[2]:
 

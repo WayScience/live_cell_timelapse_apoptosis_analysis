@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pathlib
@@ -15,9 +15,6 @@ try:
     in_notebook = True
 except NameError:
     in_notebook = False
-import itertools
-
-#
 
 
 # In[2]:
