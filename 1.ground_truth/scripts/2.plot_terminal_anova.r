@@ -23,7 +23,7 @@ intensity_features_df <- arrow::read_parquet(intensity_features_file_path)
 tukey_df <- arrow::read_parquet(tukey_results_file_path)
 head(tukey_df)
 
-# get the intesnity feature only
+# get the intensity feature only
 tukey_df <- tukey_df %>% filter(feature == "Intensity_MedianIntensity_AnnexinV")
 
 # tidy long
