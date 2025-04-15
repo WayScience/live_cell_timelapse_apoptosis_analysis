@@ -5,5 +5,4 @@ __pycache__/
 # raw data
 data/
 
-
-3.generate_umaps/results
+3.generate_umaps/results/*
