@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 sys.path.append("../utils")
 from mAP_utils import run_mAP_across_time
 
-# In[ ]:
+# In[2]:
 
 
 if not in_notebook:
@@ -81,6 +81,12 @@ subset_df = df.groupby(["Metadata_Time", "Metadata_Well"]).apply(
     lambda x: x.sample(frac=percentage, random_state=set_seed),
     include_groups=True,
 )
+subset_df.drop(columns=["Metadata_number_of_singlecells"], inplace=True)
+subset_df.reset_index(drop=True, inplace=True)
+# calculate the number of cells in each well after sampling
+subset_df["Metadata_number_of_singlecells"] = subset_df.groupby(
+    ["Metadata_Time", "Metadata_Well"]
+)["Metadata_Well"].transform("size")
 
 
 # In[5]:
@@ -99,7 +105,7 @@ if shuffle:
         subset_df[col] = np.random.permutation(subset_df[col])
 metadata_cols = [cols for cols in subset_df.columns if "Metadata" in cols]
 features_cols = [cols for cols in subset_df.columns if "Metadata" not in cols]
-features_cols = features_cols + ["Metadata_number_of_singlecells"]
+features_cols = features_cols
 aggregate_df = pycytominer.aggregate(
     population_df=subset_df,
     strata=["Metadata_Well", "Metadata_Time"],

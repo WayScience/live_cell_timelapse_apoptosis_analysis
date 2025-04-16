@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[8]:
 
 
 import pathlib
@@ -28,7 +28,7 @@ except NameError:
     in_notebook = False
 
 
-# In[2]:
+# In[9]:
 
 
 data_file_path = pathlib.Path(
@@ -69,7 +69,7 @@ print(aggregate_df.shape)
 aggregate_df.head()
 
 
-# In[3]:
+# In[10]:
 
 
 # get the non metadata columns
@@ -113,7 +113,7 @@ df.drop(columns=["misc1", "misc2", "misc3", "misc4", "misc5"], inplace=True)
 df.head()
 
 
-# In[4]:
+# In[11]:
 
 
 # create a dictionary of loadable features for each channel
@@ -127,7 +127,7 @@ loadable_features["All"] = [
 ]
 
 
-# In[5]:
+# In[12]:
 
 
 unique_channels = df["Channel"].unique().tolist()
@@ -141,7 +141,7 @@ channel_combinations = channel_combinations + [["None"]]
 channel_combinations
 
 
-# In[6]:
+# In[13]:
 
 
 channel_combo_output_dict = {}
@@ -159,17 +159,19 @@ for shuffle in [False, True]:
             features_to_load.append(loadable_features["None"])
         features_to_load = list(itertools.chain(*features_to_load))
         temporary_df = aggregate_df[features_to_load]
-        if shuffle:
-            shuffle = "shuffled"
+        if shuffle == True:
+            print("shuffled")
+            shuffle_status = "shuffled"
             random.seed(0)
             # permutate the data
             for col in temporary_df.columns:
                 if "Metadata_Time" in col or "Metadata_dose" in col:
-                    pass
+                    continue
                 else:
                     temporary_df[col] = np.random.permutation(temporary_df[col])
         else:
-            shuffle = "non_shuffled"
+            print("not shuffled")
+            shuffle_status = "non_shuffled"
 
         dict_of_map_dfs = run_mAP_across_time(
             temporary_df,
@@ -180,18 +182,28 @@ for shuffle in [False, True]:
         )
         df = pd.concat(dict_of_map_dfs.values(), keys=dict_of_map_dfs.keys())
         df.reset_index(inplace=True)
+        df.rename(
+            columns={
+                "level_0": "Metadata_Time",
+            },
+            inplace=True,
+        )
         df["Channel"] = "_".join(channel_combination)
-        df["shuffle"] = shuffle
-        channel_combo_output_dict["_".join(channel_combination)] = df
+        df["shuffle"] = shuffle_status
+        channel_combo_output_dict[
+            f"{'_'.join(channel_combination)}_{shuffle_status}"
+        ] = df
 
 
-# In[7]:
+# In[ ]:
 
 
 final_df = pd.concat(
     channel_combo_output_dict.values(), keys=channel_combo_output_dict.keys()
 )
 final_df.reset_index(inplace=True, drop=True)
+# drop level_0
+# final_df.drop(columns=["level_0"], inplace=True)
 # save the output to a file
 final_df.to_parquet("../results/mAP_across_channels.parquet")
 final_df.head()

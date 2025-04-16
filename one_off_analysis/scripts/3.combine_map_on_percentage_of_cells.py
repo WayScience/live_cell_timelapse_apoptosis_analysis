@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import pathlib
 
 import pandas as pd
 
-# In[ ]:
+# In[2]:
 
 
 input_dir = pathlib.Path("../results/mAP_cell_percentages/").resolve(strict=True)
