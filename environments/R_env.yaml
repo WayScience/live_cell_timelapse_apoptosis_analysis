@@ -15,3 +15,5 @@ dependencies:
   - r-tidyr
   - bioconda::bioconductor-complexheatmap
   - r-arrow
+  - r-ggExtra
+  - r-plotly
