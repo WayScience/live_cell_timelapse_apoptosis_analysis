@@ -88,10 +88,10 @@ dose_wells = dose_wells.drop_duplicates()
 dose_wells = dose_wells.reset_index(drop=True)
 
 
-# In[7]:
+# In[ ]:
 
 
-# there are 10 doeses, with three wells each
+# there are 10 doses, with three wells each
 # one well is needed for each dose for training
 # select one well per dose
 test_wells = []
@@ -134,7 +134,7 @@ print("Test data shape: ", test_df.shape)
 test_df.head()
 
 
-# In[11]:
+# In[ ]:
 
 
 # make a df with the wells used for training and testing with their respective doses
@@ -143,6 +143,6 @@ train_well_df = pd.DataFrame(train_wells, columns=["Metadata_Well"])
 test_well_df["data_split"] = "test"
 train_well_df["data_split"] = "train"
 train_test_well_df = pd.concat([train_well_df, test_well_df], axis=0)
-# save the train test well df to a csv file
+# save the train test well df to a parquet file
 train_test_well_file_path = data_splits_dir / "train_test_wells.parquet"
 train_test_well_df.to_parquet(train_test_well_file_path, index=False)

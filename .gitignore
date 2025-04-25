@@ -7,3 +7,5 @@ data/
 
 3.generate_umaps/results/*
 one_off_analysis/results/*
+5.linear_modeling/notebooks/linear_models/*
+5.linear_modeling/results/*
