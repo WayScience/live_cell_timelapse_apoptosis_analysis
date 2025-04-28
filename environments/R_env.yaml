@@ -15,3 +15,4 @@ dependencies:
   - r-tidyr
   - bioconda::bioconductor-complexheatmap
   - r-arrow
+  - r-patchwork
