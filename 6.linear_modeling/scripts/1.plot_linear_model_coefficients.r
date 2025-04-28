@@ -28,7 +28,12 @@ if (!dir.exists(plot_save_dir)) {
 }
 plot_file_path <- file.path(
     plot_save_dir,
-    "lm_coefficients.png"
+    "lm_coefficients_colored_by_feature_type.png"
+)
+
+plot_file_path2 <- file.path(
+    plot_save_dir,
+    "lm_coefficients_colored_by_channel.png"
 )
 lm_coeff_df <- arrow::read_parquet(lm_results_file_path)
 # shuffle the row order for plotting purposes
@@ -44,7 +49,6 @@ font_size <- 24
 plot_themes <- (
     theme_bw()
     + theme(
-        # legend.position = "bottom",
         legend.text = element_text(size = font_size),
         legend.title = element_text(size = font_size),
         axis.title.x = element_text(size = font_size),
@@ -65,6 +69,12 @@ lm_coeff_df <- lm_coeff_df %>%
 lm_coeff_df$log10p_value[is.infinite(lm_coeff_df$log10p_value)] <- max(
     lm_coeff_df$log10p_value[!is.infinite(lm_coeff_df$log10p_value)]
 )
+
+lm_coeff_df$Feature_type <- gsub(
+    "RadialDistribution",
+    "Radial\nDistibution",
+    lm_coeff_df$Feature_type
+)
 head(lm_coeff_df)
 
 width <- 15
@@ -73,9 +83,8 @@ options(repr.plot.width = width, repr.plot.height = height)
 lm_coeff_plot <- (
     ggplot(lm_coeff_df, aes(
         x = beta,
-        y = log10p_value,
+        y = r2,
         fill = Feature_type,
-        # shape = Compartment
         )
     )
     + geom_point(
@@ -91,8 +100,7 @@ lm_coeff_plot <- (
         x = "Beta Coefficient",
         y = "-log10(p-value)"
     )
-    + ylim(0, max(lm_coeff_df$log10p_value)+1)
-    # horizontal line at y = -log10(0.05)
+    # + ylim(0, max(lm_coeff_df$log10p_value)+1)
     + geom_hline(
         yintercept = -log10(0.05),
         linetype = "dashed",
@@ -100,6 +108,7 @@ lm_coeff_plot <- (
         linewidth = 1
     )
     # change the the x increments
+    + ylim(0,1)
     + scale_x_continuous(
         breaks = seq(
             from = round(min(lm_coeff_df$beta),2),
@@ -125,6 +134,15 @@ lm_coeff_plot <- (
     )
     + facet_grid(
         Channel ~ variate,
+
+    )
+        # change the the x increments
+    + scale_x_continuous(
+        breaks = seq(
+            from = round(min(lm_coeff_df$beta),2),
+            to = round(max(lm_coeff_df$beta),2),
+            by = 0.4,
+        )
     )
 )
 ggsave(
@@ -137,4 +155,77 @@ ggsave(
     units = "in",
 )
 lm_coeff_plot
+
+
+width <- 20
+height <- 12
+options(repr.plot.width = width, repr.plot.height = height)
+lm_coeff_plot2 <- (
+    ggplot(lm_coeff_df, aes(
+        x = beta,
+        y = r2,
+        fill = Channel,
+        )
+    )
+    + geom_point(
+        aes(
+            color = Channel,
+            shape = Compartment
+        ),
+        alpha = 0.5,
+        stroke = 0.5,
+        size = 4
+    )
+    + labs(
+        x = "Beta coefficient",
+        y = "R-squared value"
+    )
+    # + ylim(0, max(lm_coeff_df$log10p_value)+1)
+    + geom_hline(
+        yintercept = -log10(0.05),
+        linetype = "dashed",
+        color = "red",
+        linewidth = 1
+    )
+    + ylim(0,1)
+
+    + plot_themes
+    + guides(
+        fill = guide_legend(
+            override.aes = list(size = 5, alpha = 1),
+            title = "Channel"
+        ),
+        color = guide_legend(
+            override.aes = list(size = 5, alpha = 1),
+            title = "Channel"
+        ),
+
+        shape = guide_legend(
+            override.aes = list(size = 5, alpha = 1),
+            title = "Compartment"
+        )
+    )
+    + facet_grid(
+        variate ~ Feature_type,
+
+    )
+    # change the the x increments
+    + scale_x_continuous(
+        breaks = seq(
+            from = round(min(lm_coeff_df$beta),2),
+            to = round(max(lm_coeff_df$beta),2),
+            by = 0.4,
+        )
+    )
+)
+ggsave(
+    filename = plot_file_path2,
+    plot = lm_coeff_plot2,
+    device = "png",
+    width = width,
+    height = height,
+    dpi = 600,
+    units = "in",
+)
+lm_coeff_plot2
 
