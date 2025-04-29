@@ -6,7 +6,46 @@
 # Note that I also separate the disctinction between Cellprofiler (CP) and scDINO features.
 
 # ## The linear model will be constructed as follows:
-# ### $Y_{feature} = \beta_t X_t + \beta_{cell count} X_{cell count} + \beta_{Stuarosporine \space dose} X_{Stuarosporine \space dose} + \beta_{interaction}(X_{cell \space count}X_t) \beta_0$
+# ### $Y_{feature} = \beta_t X_t + \beta_{cell count} X_{cell count} + \beta_{Stuarosporine \space dose} X_{Stuarosporine \space dose} + \beta_{interaction_{cell \space count + time}}(X_{cell \space count}X_t) + \beta_{interaction_{dose + time}}(X_{dose}X_t) +  \beta_0$
+#
+#
+#
+
+# ### The model explained
+# This model fits the factors to every individual morphology feature.
+# This ulitmatly allows us to understand and interpret the contribution of each factor to the morphology feature.
+# We also add interaction terms to further understand the relationship of multiple factors with eachother their contribution to each morphology feature.
+# ### We define and interpret each term as follows:
+# - $Y_{feature}$: the morphology feature we are trying to predict
+#     - This is a morphology feature extracted from either CellProfiler or scDINO.
+# - $\beta_t$: the coefficient for the time variable
+#     - This coefficient represents the contribution of time to the morphology feature.
+# - $X_t$: the time variable
+#     - This variable represents the time elapsed from the start of imaging.
+#     - Note that these are timepoints starting at 0 and ending at 12 with increments of 1.
+# - $\beta_{cell count}$: the coefficient for the cell count variable
+#     - This coefficient represents the contribution of cell count/well to the morphology feature.
+# - $X_{cell count}$: the cell count variable
+#     - This variable represents the number of cells in each well.
+# - $\beta_{Stuarosporine \space dose}$: the coefficient for the Stuarosporine dose variable
+#     - This coefficient represents the contribution of Stuarosporine dose to the morphology feature.
+# - $X_{Stuarosporine \space dose}$: the Stuarosporine dose variable
+#     - This variable represents the Stuarosporine dose in each well.
+#     - note that the number input here is on a continuous scale with the attached units of nM.
+# #### The interaction terms
+# - $\beta_{interaction}(X_{cell \space count}X_t)$: the coefficient for the interaction term
+#     - This coefficient represents the contribution of the interaction between cell count and time to the morphology feature.
+# - $X_{cell \space count}X_t$: the interaction term of cell count and time
+#     - This variable represents the interaction between cell count and time.
+# - $\beta_{interaction}(X_{dose}X_t)$: the coefficient for the interaction term
+#     - This coefficient represents the contribution of the interaction between Stuarosporine dose and time to the morphology feature.
+# - $X_{dose}X_t$: the interaction term of Stuarosporine dose and time
+#     - This variable represents the interaction between Stuarosporine dose and time.
+# - $\beta_0$: the intercept
+#
+# #### Hypothesis:
+# The null hypothesis is that all factors for every feature will have a beta coeffienct of 0. This would imply that the factors do not contribute to the morphology feature.
+# The alternative hypothesis is that at least one factor for individual features will have a beta coeffienct > 0. This would imply that the factors do contribute to the morphology feature.
 
 # In[1]:
 
@@ -40,9 +79,9 @@ def fit_linear_model(
     Parameters
     ----------
     X : np.ndarray
-        The input data to fit on.
+        The input data to fit on. Should be numeric.
     y : np.ndarray
-        The target data to fit on.
+        The target data to fit on. Should be numeric.
     feature : str
         The feature name that is used from y to fit the model.
     shuffle : bool
@@ -57,7 +96,7 @@ def fit_linear_model(
     X = X.apply(pd.to_numeric, errors="coerce")
     y = pd.to_numeric(y, errors="coerce")
 
-    # Drop rows with missing values
+    # Drop rows with missing values and match the indices in the y series
     X = X.dropna()
     y = y.loc[X.index]
 
@@ -103,15 +142,15 @@ single_cells_count_column = "Metadata_number_of_singlecells"
 dose_column = "Metadata_dose"
 interaction_column1 = "Metadata_interaction1"
 interaction_column2 = "Metadata_interaction2"
-interaction_term1_sub1 = "Metadata_number_of_singlecells"
-interaction_term1_sub2 = "Metadata_Time"
-interaction_term2_sub1 = "Metadata_dose"
-interaction_term2_sub2 = "Metadata_Time"
+
 # ensure that the interaction terms are both numeric
-df[interaction_term1_sub1] = pd.to_numeric(df[interaction_term1_sub1], errors="coerce")
-df[interaction_term1_sub2] = pd.to_numeric(df[interaction_term1_sub2], errors="coerce")
-df[interaction_term2_sub1] = pd.to_numeric(df[interaction_term2_sub1], errors="coerce")
-df[interaction_term2_sub2] = pd.to_numeric(df[interaction_term2_sub2], errors="coerce")
+df["Metadata_number_of_singlecells"] = pd.to_numeric(
+    df["Metadata_number_of_singlecells"], errors="coerce"
+)
+df["Metadata_Time"] = pd.to_numeric(df["Metadata_Time"], errors="coerce")
+df["Metadata_dose"] = pd.to_numeric(df["Metadata_dose"], errors="coerce")
+df[interaction_column1] = df["Metadata_number_of_singlecells"] * df["Metadata_Time"]
+df[interaction_column2] = df["Metadata_Time"] * df["Metadata_dose"]
 
 
 # In[5]:
@@ -133,13 +172,6 @@ model_dict = {}
 
 
 # In[7]:
-
-
-df[interaction_column1] = df[interaction_term1_sub1] * df[interaction_term1_sub2]
-df[interaction_column2] = df[interaction_term2_sub1] * df[interaction_term2_sub2]
-
-
-# In[ ]:
 
 
 X = df[
@@ -167,6 +199,11 @@ for feature in tqdm.tqdm(feature_columns):
         coefficient_names["r2"].append(model.rsquared)
         coefficient_names["feature"].append(feature)
     model_dict[feature] = model
+
+
+# In[8]:
+
+
 # write the model to a file joblib
 joblib_path = pathlib.Path("../linear_models/lm_all_features.joblib").resolve()
 # write the model to a file
@@ -273,8 +310,6 @@ scdino_df = all_features_beta_df[all_features_beta_df["feature"].str.contains("s
 scdino_df = scdino_df.copy()
 scdino_df["feature"] = scdino_df["feature"].str.replace("channel_", "")
 scdino_df["feature"] = scdino_df["feature"].str.replace("channel", "")
-
-scdino_df = scdino_df.copy()
 scdino_df[["Channel", "remove", "feature", "feature_number", "featurizer_id"]] = (
     scdino_df["feature"].str.split("_", expand=True)
 )
@@ -312,14 +347,11 @@ final_df["variate"] = final_df["variate"].str.replace("interaction2", "Time x \n
 # In[14]:
 
 
-# multiple test correction
-from statsmodels.stats.multitest import multipletests
-
 # correct the p-values using the Benjamini/Hochberg method
 final_df["p_value_corrected"] = multipletests(final_df["p_value"], method="fdr_bh")[1]
 
 
-# In[ ]:
+# In[15]:
 
 
 # save the final df to a file

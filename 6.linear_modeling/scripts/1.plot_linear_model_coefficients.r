@@ -77,7 +77,7 @@ lm_coeff_df$Feature_type <- gsub(
 )
 head(lm_coeff_df)
 
-width <- 15
+width <- 18
 height <- 10
 options(repr.plot.width = width, repr.plot.height = height)
 lm_coeff_plot <- (
@@ -132,9 +132,17 @@ lm_coeff_plot <- (
             title = "Compartment"
         )
     )
+
     + facet_grid(
         Channel ~ variate,
 
+    )
+    + geom_vline(
+        xintercept = 0,
+        linetype = "dashed",
+    )
+    + theme(
+        panel.spacing = unit(2, "lines")  # Adjust spacing between facets
     )
         # change the the x increments
     + scale_x_continuous(
@@ -157,7 +165,7 @@ ggsave(
 lm_coeff_plot
 
 
-width <- 20
+width <- 22
 height <- 12
 options(repr.plot.width = width, repr.plot.height = height)
 lm_coeff_plot2 <- (
@@ -209,7 +217,14 @@ lm_coeff_plot2 <- (
         variate ~ Feature_type,
 
     )
-    # change the the x increments
+    + geom_vline(
+        xintercept = 0,
+        linetype = "dashed",
+    )
+        + theme(
+        panel.spacing = unit(2, "lines")  # Adjust spacing between facets
+    )
+        # change the the x increments
     + scale_x_continuous(
         breaks = seq(
             from = round(min(lm_coeff_df$beta),2),
