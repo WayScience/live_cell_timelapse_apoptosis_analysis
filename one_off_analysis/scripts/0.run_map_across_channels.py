@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[8]:
+# In[1]:
 
 
 import pathlib
@@ -28,48 +28,46 @@ except NameError:
     in_notebook = False
 
 
-# In[9]:
+# In[2]:
 
 
 data_file_path = pathlib.Path(
-    "../../data/CP_aggregated/profiles/aggregated_profile.parquet"
+    "../../data/CP_feature_select/profiles/features_selected_profile.parquet"
 ).resolve(strict=True)
 # load the dose information
-well_dose_df = pd.read_parquet(
-    pathlib.Path(
-        "../../data/CP_feature_select/profiles/features_selected_profile.parquet"
-    ).resolve(strict=True),
-    columns=["Metadata_Well", "Metadata_dose"],
-).drop_duplicates()
 
 
 pathlib.Path("../results").mkdir(exist_ok=True)
 # output filepath
 output_file_path = pathlib.Path("../results/mAP_across_channels.parquet").resolve()
-aggregate_df = pd.read_parquet(data_file_path)
-print(aggregate_df.shape)
-# drop rows with nan in features (non Metadata)
-aggregate_df = aggregate_df.dropna(
-    subset=aggregate_df.filter(regex="^(?!Metadata)").columns
+df = pd.read_parquet(data_file_path)
+
+df.head()
+
+
+# In[3]:
+
+
+metadata_cols = [cols for cols in df.columns if "Metadata" in cols]
+features_cols = [cols for cols in df.columns if "Metadata" not in cols]
+features_cols = features_cols
+aggregate_df = pycytominer.aggregate(
+    population_df=df,
+    strata=["Metadata_Well", "Metadata_Time"],
+    features=features_cols,
+    operation="median",
 )
-# merge the dose information with the profile data
-aggregate_df = aggregate_df.merge(
-    well_dose_df,
-    left_on="Metadata_Well",
-    right_on="Metadata_Well",
-    how="left",
-)
-dose = aggregate_df.pop("Metadata_dose")
-aggregate_df.insert(
-    1,
-    "Metadata_dose",
-    dose,
+metadata_df = df[metadata_cols]
+metadata_df = metadata_df.drop_duplicates(subset=["Metadata_Well", "Metadata_Time"])
+metadata_df = metadata_df.reset_index(drop=True)
+aggregate_df = pd.merge(
+    metadata_df, aggregate_df, on=["Metadata_Well", "Metadata_Time"]
 )
 print(aggregate_df.shape)
 aggregate_df.head()
 
 
-# In[10]:
+# In[4]:
 
 
 # get the non metadata columns
@@ -113,7 +111,7 @@ df.drop(columns=["misc1", "misc2", "misc3", "misc4", "misc5"], inplace=True)
 df.head()
 
 
-# In[11]:
+# In[5]:
 
 
 # create a dictionary of loadable features for each channel
@@ -127,7 +125,7 @@ loadable_features["All"] = [
 ]
 
 
-# In[12]:
+# In[6]:
 
 
 unique_channels = df["Channel"].unique().tolist()
@@ -141,14 +139,16 @@ channel_combinations = channel_combinations + [["None"]]
 channel_combinations
 
 
-# In[13]:
+# In[7]:
 
 
 channel_combo_output_dict = {}
+# loop through the channel combinations and shuffle
 for shuffle in [False, True]:
     for channel_combination in channel_combinations:
         features_to_load = []
         features_to_load.append(metadata_cols)
+        # rename the all channels to all
         if len(channel_combination) == 5:
             channel_combination = ["All"]
         elif channel_combination == ["None"]:
@@ -157,8 +157,10 @@ for shuffle in [False, True]:
             for channel in channel_combination:
                 features_to_load.append(loadable_features[channel])
             features_to_load.append(loadable_features["None"])
+        # flatten the list
         features_to_load = list(itertools.chain(*features_to_load))
         temporary_df = aggregate_df[features_to_load]
+        # shuffle the data
         if shuffle == True:
             print("shuffled")
             shuffle_status = "shuffled"
@@ -173,6 +175,7 @@ for shuffle in [False, True]:
             print("not shuffled")
             shuffle_status = "non_shuffled"
 
+        # run mAP with the 0 dose as the reference
         dict_of_map_dfs = run_mAP_across_time(
             temporary_df,
             seed=0,
@@ -180,6 +183,7 @@ for shuffle in [False, True]:
             reference_column_name="Metadata_dose",
             reference_group=aggregate_df["Metadata_dose"].min(),
         )
+        # concat and rename the columns
         df = pd.concat(dict_of_map_dfs.values(), keys=dict_of_map_dfs.keys())
         df.reset_index(inplace=True)
         df.rename(
@@ -195,15 +199,13 @@ for shuffle in [False, True]:
         ] = df
 
 
-# In[ ]:
+# In[8]:
 
 
 final_df = pd.concat(
     channel_combo_output_dict.values(), keys=channel_combo_output_dict.keys()
 )
 final_df.reset_index(inplace=True, drop=True)
-# drop level_0
-# final_df.drop(columns=["level_0"], inplace=True)
 # save the output to a file
-final_df.to_parquet("../results/mAP_across_channels.parquet")
+final_df.to_parquet(output_file_path)
 final_df.head()

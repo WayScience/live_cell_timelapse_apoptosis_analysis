@@ -61,6 +61,22 @@ across_channels_mAP$Channel <- factor(
 )
 
 
+# select only some of the combinations to plot
+across_channels_mAP <- across_channels_mAP %>%
+  filter(
+    Channel %in% c(
+      'All Channels',
+      'Remove\nCL 488_1',
+      'Remove\nCL 488_2',
+      'Remove\nCL 561',
+      'Remove\nDNA',
+      'CL 488_1',
+      'CL 488_2',
+      'CL 561',
+      'DNA'
+    )
+  )
+
 color_pallete_for_dose <- c(
     "0" = "#57F2F2",
     "0.61" = "#63D6D6",
@@ -79,14 +95,18 @@ across_channels_mAP$Metadata_dose <- factor(across_channels_mAP$Metadata_dose,
                                              levels = c("0", "0.61", "1.22", "2.44", "4.88",
                                                         "9.76", "19.53", "39.06", "78.13", "156.25"))
 
+# create a dose_shuffle grouping columns
+across_channels_mAP$Metadata_dose_shuffle <- paste0(across_channels_mAP$Metadata_dose, "_", across_channels_mAP$Metadata_shuffle)
+
 width <- 17
 height <- 20
 options(repr.plot.width = width, repr.plot.height = height)
 channel_subset_plot <- (
-    ggplot(across_channels_mAP, aes(x = Metadata_Time, y = mean_average_precision, fill = Metadata_dose))
-    + geom_line(aes(group = Metadata_dose, color = Metadata_dose), linewidth = 1)
-    + facet_wrap(shuffle ~ Channel, ncol = 8, scales = "free_x")
+    ggplot(across_channels_mAP, aes(x = Metadata_Time, y = mean_average_precision, fill = Metadata_dose,))
+    + geom_line(aes(group = interaction(shuffle, Metadata_dose), color = Metadata_dose))
+    + facet_grid(Channel ~ shuffle)
     + scale_color_manual(values = color_pallete_for_dose)
+
     + labs(x="Time (min.)", y = "mAP", fill = "Dose (nM)", color = "Dose (nM)")
     + ylim(0, 1)
     + theme_bw()
@@ -120,3 +140,5 @@ ggsave(
     dpi = 600
 )
 channel_subset_plot
+
+

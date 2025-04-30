@@ -11,14 +11,13 @@ module load miniforge
 conda init bash
 conda activate timelapse_map_env
 
-percent=$1
-seed=$2
+number_of_cells=$1
 
 cd scripts/ || exit
 
 
-python 2.run_map_on_percentages_of_cells.py --percentage $percent --seed $seed --shuffle
-python 2.run_map_on_percentages_of_cells.py --percentage $percent --seed $seed
+python 2.run_map_on_subsampled_cells.py --number_of_cells "$number_of_cells"
+python 2.run_map_on_subsampled_cells.py --number_of_cells "$number_of_cells" --shuffle
 
 cd .. || exit
 
