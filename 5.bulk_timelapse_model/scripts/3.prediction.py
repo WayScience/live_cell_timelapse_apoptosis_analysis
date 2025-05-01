@@ -143,4 +143,4 @@ shuffled_predictions_df["shuffled"] = True
 final_predictions_df = pd.concat([predictions_df, shuffled_predictions_df], axis=0)
 # save the predictions
 final_predictions_df.to_parquet(predictions_save_path, index=False)
-final_predictions_df
+final_predictions_df.head()
