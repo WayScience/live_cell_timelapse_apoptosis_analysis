@@ -3,12 +3,13 @@
 
 # This is quite the complex data splitting procedure.
 # The data is split into holdout data, training, validation, and testing.
-# The training and validation data only contains single-cells that have grond truth labels at the terminal time point.
-# While testing and holdout data contains celles that do and no not have ground truth labels at the terminal time point.
+# The training and validation data only contains single-cells that have ground truth labels at the terminal time point.
+# While testing and holdout data contains cells that do and no not have ground truth labels at the terminal time point.
 
-# In[1]:
+# In[ ]:
 
 
+import itertools
 import pathlib
 
 import numpy as np
@@ -27,10 +28,10 @@ else:
     from tqdm import tqdm
 
 
-# In[2]:
+# In[ ]:
 
 
-# write the cleaned dataframe to a parquet file
+# read in the data
 sc_file_path = pathlib.Path("../results/cleaned_sc_profile.parquet").resolve(
     strict=True
 )
@@ -138,7 +139,7 @@ print(f"cell_wout_ground_truth_df shape: {cell_wout_ground_truth_df.shape}")
 
 # ##
 
-# In[9]:
+# In[ ]:
 
 
 # split the data into 80, 10, 10 stratified by the well
@@ -150,7 +151,7 @@ train_sc_w_ground_truth_df, test_sc_w_ground_truth_df = train_test_split(
 )
 test_sc_w_ground_truth_df, val_sc_w_ground_truth_df = train_test_split(
     test_sc_w_ground_truth_df,
-    test_size=0.5,
+    test_size=0.5,  # 50% of 20% is 10%
     stratify=test_sc_w_ground_truth_df["Metadata_Well"],
     random_state=0,
 )
@@ -235,11 +236,10 @@ print(f"test_sc_wo_ground_truth_df shape: {cell_wout_ground_truth_df.shape[0]}")
 
 # ### Fetch the indices from each ground truth and data split and add the status back to sc_profile
 
-# In[11]:
+# In[ ]:
 
 
-# flatten each list in the dictionary
-import itertools
+# flatten each list in the dictionar
 
 for key in index_data_split_and_ground_truth_dict.keys():
     index_data_split_and_ground_truth_dict[key] = list(
@@ -266,10 +266,10 @@ data_split_data_df.reset_index(drop=False, inplace=True)
 data_split_data_df.head()
 
 
-# In[13]:
+# In[ ]:
 
 
-# addthe data_split and ground truth columns to the sc_profile dataframe by index
+# add the data_split and ground truth columns to the sc_profile dataframe by index
 sc_profile_with_data_splits_df = pd.concat(
     [sc_profile, data_split_data_df],
     axis=1,
@@ -343,10 +343,12 @@ print(f"holdout_w_gt shape: {holdout_w_gt.shape[0]}")
 print(f"holdout_wo_gt shape: {holdout_wo_gt.shape[0]}")
 
 
-# In[16]:
+# In[ ]:
 
 
 # write the data splits to a parquet file
+# this writes the indexes, ground truth, and data splits to a parquet file
+# we do not write the sc_profile dataframe to a parquet file
 data_split_file_path = pathlib.Path("../results/data_splits.parquet").resolve()
 data_split_data_df.to_parquet(
     data_split_file_path,

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# This notebook performs a fuzzy match on single-cells from the profile data to the endpoint data.
+# This is necessary because  the endpoint data was not included in the tracking module.
+# Further this notebook provides information about how long the cell track is.
+
 # In[1]:
 
 
@@ -74,16 +78,10 @@ last_time_point_df = sc_profile_df.loc[
 ]
 
 
-# In[5]:
+# In[ ]:
 
 
-print(len(last_time_point_df["Metadata_Well_FOV"].unique()))
-print(len(endpoint_sc_profile_df["Metadata_Well_FOV"].unique()))
-
-
-# In[6]:
-
-
+# chunk the dataframe by well_fov so that there are fewer indexed records to search at once during fuzzy matching
 dict_of_sc_well_fovs = {}
 for well_fov in last_time_point_df["Metadata_Well_FOV"].unique():
     dict_of_sc_well_fovs[well_fov] = last_time_point_df[
@@ -162,11 +160,9 @@ sc_well_fovs_endpoint_df["Metadata_Time"] = 13.0
 sc_well_fovs_endpoint_df.head()
 
 
-# In[11]:
+# In[ ]:
 
 
-# find the unique values in the Metadata_sc_unique_track_id column that have more than 11 time values
-sc_profile_df["Metadata_sc_unique_track_id"].value_counts()
 # map the value counts to a new column for each Metadata_sc_unique_track_id
 sc_profile_df["Metadata_sc_unique_track_id_count"] = sc_profile_df[
     "Metadata_sc_unique_track_id"
@@ -174,7 +170,7 @@ sc_profile_df["Metadata_sc_unique_track_id_count"] = sc_profile_df[
 sc_profile_df.head()
 
 
-# In[12]:
+# In[ ]:
 
 
 # write the cleaned dataframe to a parquet file
@@ -185,6 +181,8 @@ output_sc_endpoint_file_path = pathlib.Path(
     "../results/cleaned_endpoint_sc_profile.parquet"
 ).resolve(strict=False)
 output_sc_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+# we save the two profiles separately because they have different feature spaces
 
 sc_profile_df.to_parquet(output_sc_file_path, index=False)
 sc_well_fovs_endpoint_df.to_parquet(output_sc_endpoint_file_path, index=False)
