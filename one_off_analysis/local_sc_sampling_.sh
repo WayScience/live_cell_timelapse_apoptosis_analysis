@@ -5,26 +5,21 @@ conda activate timelapse_map_env
 jupyter nbconvert --to=script --FilesWriter.build_directory=scripts/ notebooks/*.ipynb
 
 # read percentage of parent cells from file
-mapfile -t percentage < ./combinations/percentage.txt
-mapfile -t seeds < ./combinations/seeds.txt
+mapfile -t number_of_cells_per_well < ./combinations/number_of_cells.txt
 
 cd scripts/ || exit
 # get total length of percentage array
-total=${#percentage[@]}
-# get total length of seeds array
-total_seed=${#seeds[@]}
+total=${#number_of_cells_per_well[@]}
 
-# get the total length of the array
-total_length=$((total * total_seed))
 iterator=0
-for percent in "${percentage[@]}"; do
-    for seed in "${seeds[@]}"; do
-        python 2.run_map_on_percentages_of_cells.py --percentage "$percent" --seed "$seed"
-        python 2.run_map_on_percentages_of_cells.py --percentage "$percent" --seed "$seed" --shuffle
-        iterator=$((iterator + 1))
-        progress=$((iterator * 100 / total_length))
-        echo "Progress: $progress%"
-    done
+for number_of_cells in "${number_of_cells_per_well[@]}"; do
+
+    python 2.run_map_on_subsampled_cells.py --number_of_cells "$number_of_cells"
+    python 2.run_map_on_subsampled_cells.py --number_of_cells "$number_of_cells" --shuffle
+    iterator=$((iterator + 1))
+    progress=$((iterator * 100 / $total))
+    echo "Progress: $progress%"
+
 done
 
 cd .. || exit

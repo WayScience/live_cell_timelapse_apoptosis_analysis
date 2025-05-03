@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import pathlib
 import random
 
 import numpy as np
+import pandas as pd
 
 # check if in a jupyter notebook
 try:
@@ -20,25 +21,38 @@ except NameError:
 # In[2]:
 
 
-seeds_path = pathlib.Path("../combinations/seeds.txt").resolve()
-percentage_path = pathlib.Path("../combinations/percentage.txt").resolve()
+number_of_cells_path = pathlib.Path("../combinations/number_of_cells.txt").resolve()
 
-seeds_path.parent.mkdir(parents=True, exist_ok=True)
+number_of_cells_path.parent.mkdir(parents=True, exist_ok=True)
 
 
 # In[3]:
 
 
+data_file_path = pathlib.Path(
+    "../../data/CP_feature_select/profiles/features_selected_profile.parquet"
+).resolve(strict=True)
+df = pd.read_parquet(data_file_path)
+
+df.head()
+
+
+# In[ ]:
+
+
+# In[4]:
+
+
 random.seed(0)
 num_of_iterations = 100
 seed_space = np.random.randint(0, 1000000, num_of_iterations).tolist()  # min, max
-percentages_to_run = np.linspace(0.1, 1, 10).tolist()  # start, stop, num
-percentages_to_run = [round(x, 2) for x in percentages_to_run]
-# write each combination to a line in the file
-with open(seeds_path, "w") as f:
-    for seed in seed_space:
-        f.write(f"{seed}\n")
+min_number_of_cells = df["Metadata_number_of_singlecells"].min()
+cells_to_sample_per_well = np.linspace(
+    1, min_number_of_cells, min_number_of_cells
+).tolist()  # start, stop, num
+cells_to_sample_per_well = [int(x) for x in cells_to_sample_per_well]
 
-with open(percentage_path, "w") as f:
-    for percentage in percentages_to_run:
-        f.write(f"{percentage}\n")
+
+with open(number_of_cells_path, "w") as f:
+    for cells_to_sample in cells_to_sample_per_well:
+        f.write(f"{cells_to_sample}\n")
