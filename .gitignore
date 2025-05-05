@@ -10,6 +10,7 @@ data/
 one_off_analysis/results/*
 
 5.bulk_timelapse_model/models/*
+5.bulk_timelapse_model/results/*
 
 6.linear_modeling/linear_models/*
 6.linear_modeling/results/*
