@@ -6,7 +6,7 @@
 
 import pathlib
 import warnings
-from typing import Tuple
+from typing import List, Tuple
 
 import joblib
 import matplotlib.pyplot as plt
