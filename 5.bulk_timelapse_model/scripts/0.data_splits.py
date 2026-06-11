@@ -5,6 +5,7 @@
 
 
 import itertools
+import json
 import pathlib
 
 import numpy as np
@@ -167,3 +168,36 @@ train_test_well_df = pd.concat([train_well_df, test_well_df], axis=0)
 # save the train test well df to a parquet file
 train_test_well_file_path = data_splits_dir / "train_test_wells.parquet"
 train_test_well_df.to_parquet(train_test_well_file_path, index=False)
+
+
+# ## Find the feature to train on for the single feature model
+
+# In[33]:
+
+
+tmp_df = bulk_df[
+    [
+        "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV",
+        "Metadata_Well",
+        "Metadata_dose",
+        "Metadata_number_of_singlecells",
+    ]
+]
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(
+    data=tmp_df,
+    x="Metadata_dose",
+    y="Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV",
+    hue="Metadata_dose",
+    palette="tab10",
+)
+plt.xlabel("Dose of Staurosporine (nM)", fontsize=16)
+plt.ylabel("Upper Quartile Intensity of Annexin V in the Cytoplasm", fontsize=14)
+plt.legend(title="Dose (nM)", bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig("../figures/annexin_v_dose_response.png", dpi=300)
+plt.show()

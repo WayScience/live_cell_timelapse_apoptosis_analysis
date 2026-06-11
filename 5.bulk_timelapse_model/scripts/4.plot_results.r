@@ -44,7 +44,7 @@ metadata_columns <- colnames(actual_results)[
 ]
 
 actual_results_single_annexinV <- actual_results %>%
-  select(c("Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV", "Metadata_shuffled"))
+  select(c("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", "Metadata_shuffled"))
 
 # rename metadata_shuffled to shuffled
 actual_results$shuffled <- actual_results$Metadata_shuffled
@@ -63,8 +63,12 @@ actual_results$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual
 actual_results_single_annexinV$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual_results_single_annexinV) / 2)
 
 
+head(subset_results)
+
+head(actual_results)
 
 # merge the two dataframes on the columns "Metadata_Time" and "Metadata_dose" Metadata_Well
+
 merged_results <- rbind(subset_results,actual_results )
 merged_results$Metadata_Time <- as.numeric(merged_results$Metadata_Time) * 30
 merged_results$Metadata_dose <- as.numeric(merged_results$Metadata_dose)
@@ -315,31 +319,31 @@ merged_results <- merged_results %>% arrange(Group)
 head(merged_results)
 
 # single feature predictions
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_path <- file.path(
-    "../results/Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV.parquet"
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_path <- file.path(
+    "../results/Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV.parquet"
 )
 
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- arrow::read_parquet(Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_path)
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- arrow::read_parquet(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_path)
 
 metadata_columns <- c("Metadata_Time", "Metadata_dose", "Metadata_Well", "shuffled", "Metadata_data_split")
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results[, colnames(subset_results) %in% c("Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV", metadata_columns)]
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- actual_results[, colnames(actual_results) %in% c("Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV", metadata_columns)]
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results[, colnames(subset_results) %in% c("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", metadata_columns)]
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- actual_results[, colnames(actual_results) %in% c("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", metadata_columns)]
 
 
 
 # merge the two dataframes on the columns "Metadata_Time" and "Metadata_dose" Metadata_Well
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- rbind(
-    subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV,
-    Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- rbind(
+    subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV,
+    Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV
     )
 
 
 
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose <- as.numeric(subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose)
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose <- factor(
-    subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose,
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose <- as.numeric(subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose <- factor(
+    subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose,
     levels = c(
         '0',
         '0.61',
@@ -355,44 +359,44 @@ subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadat
 )
 
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV %>%
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV %>%
   mutate(Group = Metadata_Well) %>%
   arrange(Metadata_Well, Metadata_Time)
 
 
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV %>% arrange(Group)
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_Time <- as.numeric(subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_Time) * 30
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV %>% arrange(Group)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_Time <- as.numeric(subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_Time) * 30
 
 
 
 # add the data split
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV %>%
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV %>%
   left_join(train_test_df, by = "Metadata_Well")
 
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV %>%
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV %>%
   mutate(Metadata_data_split = gsub("non_trained_pair", "train", Metadata_data_split))
 
 # change the dose to a factor
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose <- as.factor(subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_dose)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose <- as.factor(subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_dose)
 
 # drop na in the data split column
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV %>%
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV <- subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV %>%
   filter(!is.na(Metadata_data_split)) %>%
   filter(!is.na(Metadata_Well)) %>%
   filter(!is.na(Metadata_Time)) %>%
   filter(!is.na(Metadata_dose))
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_data_split <- gsub("non_Trained_pair", "Train", subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$Metadata_data_split)
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$shuffled <- gsub("shuffled", "Shuffled", subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$shuffled)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_data_split <- gsub("non_Trained_pair", "Train", subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$Metadata_data_split)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$shuffled <- gsub("shuffled", "Shuffled", subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$shuffled)
 
-subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$shuffled <- gsub("not_Shuffled", "Not shuffled", subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV$shuffled)
+subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$shuffled <- gsub("not_Shuffled", "Not shuffled", subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV$shuffled)
 
 
 # plot the pca
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot <- (
-    ggplot(subset_results_Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV, aes(x = Metadata_Time, y = Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV, color = Metadata_dose, group = Group))
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- (
+    ggplot(subset_results_Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV, aes(x = Metadata_Time, y = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV, color = Metadata_dose, group = Group))
     + geom_line(aes(group = Group), alpha = 0.5, size = 2)
     + theme_minimal()
     + facet_grid(Metadata_data_split ~ shuffled)
@@ -414,12 +418,12 @@ Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot <- (
 )
 ggsave(
     filename = "../figures/AnnexinV_Integrated_Intensity_in_the_Cytoplasm.png",
-    plot = Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot,
+    plot = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot,
     width = width,
     height = height,
     dpi = 600
 )
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot
 
 # read and rasterize the workflow figure
 workflow_figure_path <- file.path(
@@ -442,7 +446,7 @@ workflow_figure_raster <- workflow_figure_raster +
 
 workflow_figure_raster
 
-Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot <- Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot + theme(legend.position = "none")
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot + theme(legend.position = "none")
 pca1_plot <- pca1_plot + theme(legend.position = "none")
 
 layout <- "
@@ -458,7 +462,7 @@ final_plot <- (
     wrap_elements(
         full = workflow_figure_raster
     )
-    + Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV_plot
+    + Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot
 
     + pca_over_time_plot
     + plot_layout(design = layout)

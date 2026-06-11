@@ -35,7 +35,7 @@ data_split_df = pd.read_parquet(train_test_wells_path)
 df = pd.read_parquet(profile_data_path)
 
 
-# In[3]:
+# In[ ]:
 
 
 models = pathlib.Path(models_path).glob("*.joblib")
@@ -53,7 +53,7 @@ for model_path in models:
         "shuffled" if "shuffled" in model_path.name else "not_shuffled"
     )
     models_dict["feature"].append(
-        "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+        "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
         if "terminal_feature" in model_path.name
         else "all_terminal_features"
     )

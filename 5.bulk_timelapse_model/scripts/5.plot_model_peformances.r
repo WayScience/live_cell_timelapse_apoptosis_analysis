@@ -14,7 +14,7 @@ for (pkg in c("ggplot2", "dplyr", "patchwork", "ggplotify")) {
 performances_file_path <- file.path("..", "results", "model_performances.parquet")
 df <- arrow::read_parquet(performances_file_path)
 df$feature <- gsub("all_terminal_features", "All features", df$feature)
-df$feature <- gsub("Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV", "AnnexinV single feature", df$feature)
+df$feature <- gsub("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", "AnnexinV single feature", df$feature)
 df$shuffled <- factor(df$shuffled, levels = c("not_shuffled", "shuffled"))
 
 mse_plot <- (

@@ -6,7 +6,7 @@
 
 import pathlib
 import warnings
-from typing import Tuple
+from typing import List, Tuple
 
 import joblib
 import matplotlib.pyplot as plt
@@ -133,7 +133,7 @@ feature_columns = train_y.columns.tolist()
 # In[4]:
 
 
-single_feature = "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+single_feature = "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
 
 
 # In[5]:

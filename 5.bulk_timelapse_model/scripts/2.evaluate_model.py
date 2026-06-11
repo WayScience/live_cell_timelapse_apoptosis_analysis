@@ -82,7 +82,7 @@ profile_df.head()
 # In[4]:
 
 
-single_feature = "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+single_feature = "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
 
 
 # In[5]:
@@ -93,7 +93,7 @@ single_feature_df = profile_df[[single_feature]]
 profile_df = profile_df.drop(columns=terminal_column_names)
 
 
-# In[6]:
+# In[ ]:
 
 
 models = pathlib.Path(models_path).glob("*.joblib")
@@ -111,7 +111,7 @@ for model_path in models:
         "shuffled" if "shuffled" in model_path.name else "not_shuffled"
     )
     models_dict["feature"].append(
-        "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+        "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
         if "terminal_feature" in model_path.name
         else "all_terminal_features"
     )
