@@ -1,12 +1,17 @@
 packages <- c("ggplot2", "dplyr", "patchwork", "viridis", "platetools")
 for (pkg in packages) {
-  if (!require(pkg, character.only = TRUE)) {
-    suppressPackageStartupMessages(
-        suppressWarnings(
-            library(pkg, character.only = TRUE)
+    if (!require(pkg, character.only = TRUE)) {
+
+        suppressPackageStartupMessages(
+            suppressWarnings(
+                suppressMessages(
+                    library(
+                        pkg, character.only = TRUE
+                    )
+                )
+            )
         )
-    )
-  }
+    }
 }
 source("../../utils/r_themes.r")
 
@@ -34,35 +39,51 @@ df$data_split <- gsub("train", "Train", df$data_split)
 df$data_split <- gsub("test", "Test", df$data_split)
 head(df)
 
-train_test_split_platemap <- (
-    raw_map(data = df$data_split,
-        well = df$Metadata_Well,
-        plate = 96)
-    + theme_dark()
-    # change the legend title
-    + labs(fill = "Data Split")
-)
+width <- 8
+height <- 4
+options(repr.plot.width = width, repr.plot.height = height)
 
+# Extract column number from well label (e.g. "B04" -> 4)
+df <- df %>%
+  mutate(
+    well_col  = as.integer(gsub(".*?(\\d+)$", "\\1", Metadata_Well)),  # ← base R
+    col_group = case_when(
+      well_col %in% 4:8           ~ "middle",
+      well_col %in% c(1:3, 9:11) ~ "outer",
+      TRUE                        ~ NA_character_
+    )
+  )
 
-train_test_split_platemap_dose <- (
-    raw_map(data = factor(df$Metadata_dose),
-            well = df$Metadata_Well,
-            plate = 96)
-    + theme_dark()
-    # use color palette for dose
-    + scale_fill_manual(values = color_palette_dose)
-    # set the legend title to "Dose"
-    + labs(fill = "Staurosporine Dose (nM)")
-    # make the legend two columns
-    + guides(fill = guide_legend(ncol = 2))
-)
+train_test_split_platemap_dose <- raw_map(
+    data = factor(df$Metadata_dose),
+    well = df$Metadata_Well,
+    plate = 96
+) +
+  geom_point(
+    aes(
+      shape = factor(df$data_split),
+      color = df$col_group          # ← map color to column group
+    ),
+    size = 3
+  ) +
+  theme_dark() +
+  scale_fill_manual(values = color_palette_dose) +
+  scale_shape_manual(values = c(17, 19)) +
 
-
-final_plot <- (
-    train_test_split_platemap / train_test_split_platemap_dose
-    # + plot_layout(guides = "collect")
-    # add annotations for A and B and make them big
-    + plot_annotation(tag_levels = "A") & theme(plot.tag = element_text(size = 20))
-)
-final_plot
-ggsave("../figures/train_test_split_platemap.png", final_plot, width = 8, height = 10, dpi = 600)
+  scale_color_manual(
+    values = c("middle" = "black", "outer" = "white"),
+    na.value = "grey50",
+    guide = "none"              # ← removes color legend
+)+
+  labs(
+    fill  = "Staurosporine Dose (nM)",
+    shape = "Data Split",
+    color = "Column Group"
+  ) +
+  guides(
+    fill  = guide_legend(ncol = 2),
+  shape = guide_legend(direction = "horizontal")  # ← horizontal shape legend
+  )
+# save the figure
+ggsave("../figures/train_test_split_platemap.png", train_test_split_platemap_dose, width = width, height = height, dpi = 600)
+train_test_split_platemap_dose
