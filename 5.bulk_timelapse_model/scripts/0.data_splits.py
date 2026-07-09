@@ -5,7 +5,6 @@
 
 
 import itertools
-import json
 import pathlib
 
 import matplotlib.pyplot as plt
