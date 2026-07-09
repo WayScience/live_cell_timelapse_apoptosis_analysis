@@ -14,7 +14,7 @@ for (pkg in packages) {
 source("../../../utils/r_themes.r")
 
 umap_file_path <- file.path(
-    "../../../data/umap/combined_umap_transformed.parquet"
+    "../../../3.generate_umap_and_PCA/results/UMAP/single-cell_profiles_CP_scDINO_all_timepoints_umap.parquet"
 )
 mAP_file_path <- file.path(
     "../../../4.mAP_analysis/data/mAP/mAP_scores_CP_scDINO.parquet"
@@ -171,10 +171,11 @@ umap_df$Metadata_dose_w_unit <- factor(
         '156.25 nM'
     )
 )
-
 umap_df$Metadata_Time <- as.numeric(umap_df$Metadata_Time)
+
+
 umap_plot_facet <- (
-    ggplot(data = umap_df, aes(x = UMAP0, y = UMAP1))
+    ggplot(data = umap_df, aes(x = UMAP_0, y = UMAP_1))
     + geom_point(aes(color = Metadata_Time), size = 0.2, alpha = 0.2)
     + scale_color_gradientn(
         colors = temporal_palette,
@@ -209,8 +210,8 @@ umap_plot_facet
 
 # calculate the centroid of each UMAP cluster dose and time wise
 umap_df_centroids <- umap_df %>% group_by(Metadata_dose, Metadata_Time) %>% summarise(
-    UMAP0_centroid = mean(UMAP0),
-    UMAP1_centroid = mean(UMAP1)
+    UMAP0_centroid = mean(UMAP_0),
+    UMAP1_centroid = mean(UMAP_1)
 )
 umap_df_centroids$Metadata_Time <- as.numeric(gsub(" min", "", umap_df_centroids$Metadata_Time))
 umap_df_centroids$Metadata_dose_w_unit <- paste0(

@@ -9,7 +9,7 @@ import pathlib
 import pandas as pd
 from sklearn.decomposition import PCA
 
-# In[ ]:
+# In[2]:
 
 
 def fit_pca_to_the_first_timepoint(

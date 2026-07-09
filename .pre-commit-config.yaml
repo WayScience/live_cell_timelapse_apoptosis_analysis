@@ -24,8 +24,8 @@ repos:
       args: [--profile=black]
 
   # remove unused imports
-  - repo: https://github.com/hadialqattan/pycln.git
-    rev: v2.4.0
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.6.0
     hooks:
       - id: pycln
 
