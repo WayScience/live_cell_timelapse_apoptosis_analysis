@@ -8,8 +8,10 @@ import itertools
 import json
 import pathlib
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 # In[2]:
 
@@ -172,7 +174,7 @@ train_test_well_df.to_parquet(train_test_well_file_path, index=False)
 
 # ## Find the feature to train on for the single feature model
 
-# In[33]:
+# In[15]:
 
 
 tmp_df = bulk_df[
@@ -184,8 +186,6 @@ tmp_df = bulk_df[
     ]
 ]
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 plt.figure(figsize=(10, 6))
 sns.scatterplot(
@@ -195,7 +195,7 @@ sns.scatterplot(
     hue="Metadata_dose",
     palette="tab10",
 )
-plt.xlabel("Dose of Staurosporine (nM)", fontsize=16)
+plt.xlabel("Dose of staurosporine (nM)", fontsize=16)
 plt.ylabel("Upper Quartile Intensity of Annexin V in the Cytoplasm", fontsize=14)
 plt.legend(title="Dose (nM)", bbox_to_anchor=(1.05, 1), loc="upper left")
 plt.tight_layout()

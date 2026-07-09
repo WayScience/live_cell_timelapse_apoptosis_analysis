@@ -403,7 +403,7 @@ Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- (
 
     + geom_vline(xintercept = (30*12), linetype = "dashed", color = "black", size = 1)
 
-    + labs(x="Time (minutes)", y="AnnexinV Integrated Intensity\nin the Cytoplasm", color="Dose (nM)")
+    + labs(x="Time (minutes)", y="Predicted Upper Quartile Intensity\n of Annexin V in the Cytoplasm", color="Dose (nM)")
     + plot_themes
     + scale_color_manual(values = color_palette_dose)
     + dose_guides_color
@@ -417,7 +417,7 @@ Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- (
 
 )
 ggsave(
-    filename = "../figures/AnnexinV_Integrated_Intensity_in_the_Cytoplasm.png",
+    filename = "../figures/AnnexinV_UpperQuartile_Intensity_in_the_Cytoplasm.png",
     plot = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot,
     width = width,
     height = height,
@@ -449,6 +449,38 @@ workflow_figure_raster
 Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot + theme(legend.position = "none")
 pca1_plot <- pca1_plot + theme(legend.position = "none")
 
+# Panel B: orange facet strips
+Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <-
+    Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot +
+    theme(
+        strip.background = element_rect(fill = "#EA5125", color = NA),
+        strip.text = element_text(color = "black")  # adjust if needed for contrast
+    )
+# resave
+ggsave(
+    filename = "../figures/AnnexinV_UpperQuartile_Intensity_in_the_Cytoplasm.png",
+    plot = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot,
+    width = width,
+    height = height,
+    dpi = 600
+)
+
+# Panel C: blue facet strips
+pca_over_time_plot <-
+    pca_over_time_plot +
+    theme(
+        strip.background = element_rect(fill = "#25AEEA", color = NA),
+        strip.text = element_text(color = "white")  # adjust if needed for contrast
+    )
+# resave
+ggsave(
+    filename = "../figures/pca_over_time.png",
+    plot = pca_over_time_plot,
+    width = width,
+    height = height,
+    dpi = 600
+)
+
 layout <- "
 AABB
 CCCC
@@ -456,18 +488,15 @@ CCCC
 height <- 14
 width <- 17
 options(repr.plot.width=width, repr.plot.height=height)
-final_plot <- (
-    # workflow_figure_raster
-    # tight layout
-    wrap_elements(
-        full = workflow_figure_raster
-    )
-    + Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot
 
+final_plot <- (
+    wrap_elements(full = workflow_figure_raster)
+    + Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot
     + pca_over_time_plot
     + plot_layout(design = layout)
     + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 24))
 )
+
 ggsave(
     filename = "../figures/final_predicted_terminal_profiles_from_all_time_points.png",
     plot = final_plot,
@@ -476,3 +505,5 @@ ggsave(
     dpi = 600
 )
 final_plot
+
+

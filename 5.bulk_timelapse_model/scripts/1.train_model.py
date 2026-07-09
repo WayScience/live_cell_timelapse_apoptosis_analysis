@@ -130,9 +130,12 @@ print(
 feature_columns = train_y.columns.tolist()
 
 
-# In[4]:
+# In[ ]:
 
 
+# chose this feature to best represent the accumulation of Annexin V in the cytoplasm,
+# which is a marker of apoptosis.
+# We expect to see a dose-dependent increase in Annexin V intensity in the cytoplasm as cells undergo apoptosis in response to staurosporine treatment.
 single_feature = "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
 
 
