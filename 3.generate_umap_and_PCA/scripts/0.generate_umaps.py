@@ -86,8 +86,6 @@ def fit_umap_to_all_timepoints(
     ----------
     df : pd.DataFrame
         The dataframe containing all feature, metadata, and timepoint columns.
-    timepoint_column : str
-        The name of the column containing the timepoint information
     metadata_columns : list
         The names of the columns containing the metadata information
     feature_columns : list
@@ -167,25 +165,27 @@ umap_model = umap.UMAP(
 # In[5]:
 
 
+fit_to_first_timepoint = False  # set to False to fit to all timepoints
 for profile_level in dictionary_of_feature_sets.keys():
     for profile in dictionary_of_feature_sets[profile_level].keys():
         profile_df = pd.read_parquet(dictionary_of_feature_sets[profile_level][profile])
         metadata_columns = [x for x in profile_df.columns if "Metadata_" in x]
         feature_columns = [x for x in profile_df.columns if "Metadata_" not in x]
-        umap_df = fit_umap_to_the_first_timepoint(
-            profile_df,
-            timepoint_column="Metadata_Time",
-            metadata_columns=metadata_columns,
-            feature_columns=feature_columns,
-            umap_model=umap_model,
-        )
-        # set the save path of the umap data
-        umap_save_path = pathlib.Path(
-            f"../results/UMAP/{profile_level}_{profile}_umap.parquet"
-        ).resolve()
-        umap_save_path.parent.mkdir(parents=True, exist_ok=True)
-        # save the umap data
-        umap_df.to_parquet(umap_save_path, index=False)
+        if fit_to_first_timepoint:
+            umap_df = fit_umap_to_the_first_timepoint(
+                profile_df,
+                timepoint_column="Metadata_Time",
+                metadata_columns=metadata_columns,
+                feature_columns=feature_columns,
+                umap_model=umap_model,
+            )
+            # set the save path of the umap data
+            umap_save_path = pathlib.Path(
+                f"../results/UMAP/{profile_level}_{profile}_umap_first_timepoint.parquet"
+            ).resolve()
+            umap_save_path.parent.mkdir(parents=True, exist_ok=True)
+            # save the umap data
+            umap_df.to_parquet(umap_save_path, index=False)
         all_timepoints_umap_df = fit_umap_to_all_timepoints(
             profile_df,
             metadata_columns=metadata_columns,
