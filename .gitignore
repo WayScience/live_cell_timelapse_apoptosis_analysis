@@ -1,6 +1,7 @@
 # pycache
 __pycache__/
 **.pyc
+**Rplots.pdf
 
 # raw data
 data/
