@@ -6,7 +6,7 @@
 
 import pathlib
 import warnings
-from typing import Tuple
+from typing import List, Tuple
 
 import joblib
 import matplotlib.pyplot as plt
@@ -130,10 +130,13 @@ print(
 feature_columns = train_y.columns.tolist()
 
 
-# In[4]:
+# In[ ]:
 
 
-single_feature = "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+# chose this feature to best represent the accumulation of Annexin V in the cytoplasm,
+# which is a marker of apoptosis.
+# We expect to see a dose-dependent increase in Annexin V intensity in the cytoplasm as cells undergo apoptosis in response to staurosporine treatment.
+single_feature = "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
 
 
 # In[5]:
