@@ -53,7 +53,7 @@ for model_path in models:
         "shuffled" if "shuffled" in model_path.name else "not_shuffled"
     )
     models_dict["feature"].append(
-        "Terminal_Cytoplasm_Intensity_IntegratedIntensity_AnnexinV"
+        "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
         if "terminal_feature" in model_path.name
         else "all_terminal_features"
     )
