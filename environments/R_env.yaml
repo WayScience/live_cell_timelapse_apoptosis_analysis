@@ -21,3 +21,4 @@ dependencies:
   - r-ggplotify
   - r-viridis
   - r-VennDiagram
+  - r-devtools

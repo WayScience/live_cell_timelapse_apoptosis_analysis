@@ -1,5 +1,10 @@
+library("devtools")
+# check if patchwork is installed, if not install it
+if (!requireNamespace("patchwork", quietly = TRUE)) {
+    devtools::install_github("thomasp85/patchwork")
+}
 for (pkg in c(
-    "ggplot2", "dplyr", "patchwork", "ggplotify", "umap"
+    "ggplot2", "dplyr", "patchwork", "ggplotify"
     )) {
     # load the package quietly
     suppressPackageStartupMessages(
@@ -289,8 +294,8 @@ pca_over_time_plot <- (
     + theme_minimal()
     + facet_wrap( ~ Metadata_Time, ncol = 7)
     + labs(
-        x=paste0("PC1 (", round(pca_df$PC1_var[1],2), "% explained variance)"),
-        y=paste0("PC2 (", round(pca_df$PC2_var[1],2), "% explained variance)"),
+        x=paste0("PC1 (", round(pca_df$PC1_var[1],2), "%\nexplained variance)"),
+        y=paste0("PC2 (", round(pca_df$PC2_var[1],2), "%\nexplained variance)"),
         color="Staurosporine Dose (nM)"
         )
     + plot_themes
@@ -403,7 +408,7 @@ Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- (
 
     + geom_vline(xintercept = (30*12), linetype = "dashed", color = "black", size = 1)
 
-    + labs(x="Time (minutes)", y="Predicted Upper Quartile Intensity\n of Annexin V in the Cytoplasm", color="Dose (nM)")
+    + labs(x="Time (minutes)", y="Predicted Upper Quartile\nIntensity of Annexin V \nin the Cytoplasm", color="Dose (nM)")
     + plot_themes
     + scale_color_manual(values = color_palette_dose)
     + dose_guides_color
@@ -438,13 +443,74 @@ workflow_figure_raster <- as.ggplot(
     theme(
         plot.margin = margin(0, 0, 0, 0)
     )
-# cut down on the whitespace around the image
-workflow_figure_raster <- workflow_figure_raster +
-    theme(
-        plot.margin = margin(0, 0, -1, -1) # left, right, top, bottom
-    )
-
+# # cut down on the whitespace around the image
+# workflow_figure_raster <- workflow_figure_raster +
+#     theme(
+#         plot.margin = margin(0, 0, -1, -1) # left, right, top, bottom
+#     )
 workflow_figure_raster
+
+performances_file_path <- file.path("..", "results", "model_performances.parquet")
+df <- arrow::read_parquet(performances_file_path)
+df$feature <- gsub("all_terminal_features", "All features", df$feature)
+df$feature <- gsub("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", "AnnexinV\nsingle feature", df$feature)
+df$shuffled <- gsub("shuffled", "Shuffled", df$shuffled)
+df$shuffled <- gsub("not_Shuffled", "Not shuffled", df$shuffled)
+df$shuffled <- factor(df$shuffled, levels = c("Not shuffled", "Shuffled"))
+
+width <- 8
+height <- 6
+options(repr.plot.width = width, repr.plot.height = height)
+
+# shared color mapping: All features = blue, single feature = orange
+feature_colors <- c("All features" = "#39B0E5", "AnnexinV\nsingle feature" = "#EA5125")
+
+mse_plot <- (
+    ggplot(df, aes(x = feature, y = mse, fill = feature, alpha = shuffled, linetype = shuffled))
+    + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
+    + theme_bw()
+    + labs(
+        x = "Feature Set",
+        y = "Mean Squared Error"
+    )
+    + theme(
+        text = element_text(size = 18),
+        legend.key.size = unit(1, "lines")
+    )
+    + scale_fill_manual(values = feature_colors, name = "Feature Set")
+    + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
+    + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
+    + guides(
+        fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
+        alpha = guide_legend(override.aes = list(fill = "grey50")),
+        linetype = guide_legend(override.aes = list(fill = "grey50"))
+    )
+)
+mse_plot
+
+r2_plot <- (
+    ggplot(df, aes(x = feature, y = r2, fill = feature, alpha = shuffled, linetype = shuffled))
+    + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
+    + theme_bw()
+    + labs(
+        x = "Feature Set",
+        y = expression(R^2)
+    )
+    + ylim(min(df$r2) - 0.1, 1)
+    + theme(
+        text = element_text(size = 18),
+        legend.key.size = unit(1, "lines")
+    )
+    + scale_fill_manual(values = feature_colors, name = "Feature Set")
+    + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
+    + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
+    + guides(
+        fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
+        alpha = guide_legend(override.aes = list(fill = "grey50")),
+        linetype = guide_legend(override.aes = list(fill = "grey50"))
+    )
+)
+r2_plot
 
 Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot + theme(legend.position = "none")
 pca1_plot <- pca1_plot + theme(legend.position = "none")
@@ -481,20 +547,36 @@ ggsave(
     dpi = 600
 )
 
+
+mse_plot <- mse_plot + theme(legend.position = "none")
+
 layout <- "
 AABB
-CCCC
+CCDD
+EEEE
 "
-height <- 14
-width <- 17
-options(repr.plot.width=width, repr.plot.height=height)
+height <- 17
+width <- 14
+options(repr.plot.width = width, repr.plot.height = height)
 
 final_plot <- (
     wrap_elements(full = workflow_figure_raster)
-    + Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot
-    + pca_over_time_plot
-    + plot_layout(design = layout)
-    + plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 24))
+
+    + wrap_elements(full = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot)
+    + mse_plot
+    + r2_plot
+    + wrap_elements(full = pca_over_time_plot)
+
+   + plot_layout(
+        design = layout,
+        heights = c(1, 0.5, 1),   # relative height of each row (A/B/C row, D row, E row)
+        widths  = c(1, 1, 1, 1) # relative width of each column
+      )
+    + plot_annotation(tag_levels = 'A')
+    & theme(
+        plot.tag = element_text(size = 24),
+        plot.margin = margin(t = 5, r = 5, b = 5, l = 5)  # shrink/grow gap between all panels
+      )
 )
 
 ggsave(
@@ -505,5 +587,3 @@ ggsave(
     dpi = 600
 )
 final_plot
-
-
