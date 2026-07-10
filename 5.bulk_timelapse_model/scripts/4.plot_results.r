@@ -450,6 +450,8 @@ workflow_figure_raster <- as.ggplot(
 #     )
 workflow_figure_raster
 
+df
+
 performances_file_path <- file.path("..", "results", "model_performances.parquet")
 df <- arrow::read_parquet(performances_file_path)
 df$feature <- gsub("all_terminal_features", "All features", df$feature)
@@ -457,6 +459,8 @@ df$feature <- gsub("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV
 df$shuffled <- gsub("shuffled", "Shuffled", df$shuffled)
 df$shuffled <- gsub("not_Shuffled", "Not shuffled", df$shuffled)
 df$shuffled <- factor(df$shuffled, levels = c("Not shuffled", "Shuffled"))
+df$data_split <- gsub("train", "Train", df$data_split)
+df$data_split <- gsub("test", "Test", df$data_split)
 
 width <- 8
 height <- 6
@@ -485,6 +489,8 @@ mse_plot <- (
         alpha = guide_legend(override.aes = list(fill = "grey50")),
         linetype = guide_legend(override.aes = list(fill = "grey50"))
     )
+    + facet_wrap(~data_split)
+
 )
 mse_plot
 
@@ -509,6 +515,7 @@ r2_plot <- (
         alpha = guide_legend(override.aes = list(fill = "grey50")),
         linetype = guide_legend(override.aes = list(fill = "grey50"))
     )
+    + facet_wrap(~data_split)
 )
 r2_plot
 

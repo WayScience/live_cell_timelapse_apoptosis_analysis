@@ -24,6 +24,8 @@ width <- 8
 height <- 6
 options(repr.plot.width = width, repr.plot.height = height)
 
+df
+
 mse_plot <- (
     ggplot(df, aes(x = feature, y = mse, fill = shuffled))
     + geom_bar(stat = "identity", position = position_dodge())
@@ -35,6 +37,7 @@ mse_plot <- (
     )
     + theme(text = element_text(size = 18))
     + guides(fill = guide_legend(title = "Model Type"))
+    + facet_wrap(~data_split, nrow = 1, scales = "free_x")
 )
 mse_plot
 
@@ -50,6 +53,8 @@ r2_plot <- (
     + ylim(min(df$r2) - 0.1, 1)
     + theme(text = element_text(size = 18))
     + guides(fill = guide_legend(title = "Model Type"))
+    + facet_wrap(~data_split, nrow = 1, scales = "free_x")
+
 
 )
 r2_plot
