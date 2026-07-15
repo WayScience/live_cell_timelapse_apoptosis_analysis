@@ -47,7 +47,6 @@ intensity_features_df <- intensity_features_df %>% filter(
     feature == "Intensity_MeanIntensity_AnnexinV"
 )
 
-
 intensity_features_df$Metadata_dose <- as.character(intensity_features_df$Metadata_dose)
 intensity_features_df$Metadata_dose <- factor(
     intensity_features_df$Metadata_dose,
@@ -62,35 +61,55 @@ intensity_features_df$Metadata_dose <- factor(
         '39.06',
         '78.13',
         '156.25'
-)
     )
+)
+
 points_color_palette_for_dose <- c(
     "0" = "#808080",
     "0.61" = "#000000",
     "1.22" = "#000000",
     "2.44" = "#000000",
     "4.88" = "#000000",
-    "9.77" = "#808080",
-    "19.53" = "#808080",
+    "9.77" = "#000000",
+    "19.53" = "#000000",
     "39.06" = "#808080",
     "78.13" = "#808080",
     "156.25" = "#808080"
 )
-# plot the intensity_features_df
+
+# doses with darker box fill -> their median line should be white for contrast
+dark_fill_doses <- c("0", "0.61", "39.06", "78.13", "156.25")
+
+# compute per-dose median and x position to draw a white overlay line on top
+# of the boxplot's own (black) median line, matching the default box width (0.75)
+median_overlay_df <- intensity_features_df |>
+    dplyr::filter(Metadata_dose %in% dark_fill_doses) |>
+    dplyr::group_by(Metadata_dose) |>
+    dplyr::summarise(median_value = median(value, na.rm = TRUE), .groups = "drop") |>
+    dplyr::mutate(x_num = as.numeric(Metadata_dose))
+
 width <- 10
 height <- 10
 options(repr.plot.width = width, repr.plot.height = height)
+
 intensity_plot <- (
     ggplot(intensity_features_df, aes(x = Metadata_dose, y = value, fill = Metadata_dose))
-    + geom_boxplot(aes(group=Metadata_dose), outlier.size = 0.5, outlier.colour = "gray")
-    # add jittered points
+    + geom_boxplot(aes(group = Metadata_dose), outlier.size = 0.5, outlier.colour = "gray")
+    # white overlay on the median line, only for the darker-fill doses
+    + geom_segment(
+        data = median_overlay_df,
+        aes(x = x_num - 0.375, xend = x_num + 0.375, y = median_value, yend = median_value),
+        inherit.aes = FALSE,
+        color = "white",
+        linewidth = 0.7
+    )
     + geom_jitter(width = 0.2, size = 2, alpha = 1, aes(color = Metadata_dose))
     + labs(
         x = "Staurosporine dose (nM)",
         y = "Whole Image Mean Intensity of AnnexinV"
     )
     + theme_bw()
-        + theme(
+    + theme(
         axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
         axis.title.x = element_text(size = 18),
         axis.title.y = element_text(size = 18),
@@ -98,11 +117,9 @@ intensity_plot <- (
         plot.title = element_text(size = 18, hjust = 0.5),
         legend.position = "none",
         strip.text = element_text(size = 18),
-
-        legend.title = element_text(size=20)
+        legend.title = element_text(size = 20)
     )
     + scale_fill_manual(values = color_palette_dose)
-    # add color to jitter points
     + scale_color_manual(values = points_color_palette_for_dose)
 )
 intensity_plot
