@@ -494,6 +494,30 @@ mse_plot <- (
 )
 mse_plot
 
+# r2_plot <- (
+#     ggplot(df, aes(x = feature, y = r2, fill = feature, alpha = shuffled, linetype = shuffled))
+#     + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
+#     + theme_bw()
+#     + labs(
+#         x = "Feature Set",
+#         y = expression(R^2)
+#     )
+#     + ylim(min(df$r2) - 0.1, 1)
+#     + theme(
+#         text = element_text(size = 18),
+#         legend.key.size = unit(1, "lines")
+#     )
+#     + scale_fill_manual(values = feature_colors, name = "Feature Set")
+#     + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
+#     + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
+#     + guides(
+#         fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
+#         alpha = guide_legend(override.aes = list(fill = "grey50")),
+#         linetype = guide_legend(override.aes = list(fill = "grey50"))
+#     )
+#     + facet_wrap(~data_split)
+# )
+# r2_plot
 r2_plot <- (
     ggplot(df, aes(x = feature, y = r2, fill = feature, alpha = shuffled, linetype = shuffled))
     + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
@@ -507,11 +531,18 @@ r2_plot <- (
         text = element_text(size = 18),
         legend.key.size = unit(1, "lines")
     )
-    + scale_fill_manual(values = feature_colors, name = "Feature Set")
+    + scale_fill_manual(
+        values = feature_colors,
+        name = "Feature Set",
+        labels = function(x) gsub("\n", " ", x)  # keep legend labels single-line
+      )
     + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
     + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
     + guides(
-        fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
+        fill = guide_legend(
+          override.aes = list(alpha = 1, linetype = "solid"),
+          keyheight = unit(1, "lines")   # forces key box to stay uniform height
+        ),
         alpha = guide_legend(override.aes = list(fill = "grey50")),
         linetype = guide_legend(override.aes = list(fill = "grey50"))
     )
