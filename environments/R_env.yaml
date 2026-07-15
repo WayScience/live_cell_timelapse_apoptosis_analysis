@@ -20,5 +20,4 @@ dependencies:
   - r-ggplotify
   - r-viridis
   - r-VennDiagram
-  - r-ggnewscale
-  - r-sf
+  - r-devtools

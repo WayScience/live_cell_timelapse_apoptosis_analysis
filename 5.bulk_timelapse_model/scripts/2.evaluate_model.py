@@ -60,7 +60,10 @@ def model_stats_grab(
 
 
 # load the training data
-profile_file_dir = pathlib.Path("../data_splits/test.parquet").resolve(strict=True)
+train_profile_file_dir = pathlib.Path("../data_splits/train.parquet").resolve(
+    strict=True
+)
+test_profile_file_dir = pathlib.Path("../data_splits/test.parquet").resolve(strict=True)
 
 models_path = pathlib.Path("../models").resolve(strict=True)
 
@@ -74,9 +77,11 @@ terminal_column_names = [
 results_dir = pathlib.Path("../results/").resolve()
 results_dir.mkdir(parents=True, exist_ok=True)
 
-profile_df = pd.read_parquet(profile_file_dir)
-print(profile_df.shape)
-profile_df.head()
+train_profile_df = pd.read_parquet(train_profile_file_dir)
+test_profile_df = pd.read_parquet(test_profile_file_dir)
+print(train_profile_df.shape)
+print(test_profile_df.shape)
+train_profile_df.head()
 
 
 # In[4]:
@@ -88,9 +93,11 @@ single_feature = "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
 # In[5]:
 
 
-terminal_df = profile_df[terminal_column_names]
-single_feature_df = profile_df[[single_feature]]
-profile_df = profile_df.drop(columns=terminal_column_names)
+train_terminal_df = train_profile_df[terminal_column_names]
+test_terminal_df = test_profile_df[terminal_column_names]
+single_feature_df = train_profile_df[[single_feature]]
+train_profile_df = train_profile_df.drop(columns=terminal_column_names)
+test_profile_df = test_profile_df.drop(columns=terminal_column_names)
 
 
 # In[6]:
@@ -122,6 +129,7 @@ for model_path in models:
 
 results_dict = {
     "model_name": [],
+    "data_split": [],
     "shuffled": [],
     "feature": [],
     "mse": [],
@@ -133,9 +141,10 @@ results_dict = {
 # In[8]:
 
 
-metadata_columns = [x for x in profile_df.columns if "metadata" in x.lower()]
-terminal_column_names = [x for x in profile_df.columns if "Terminal" in x]
-features_df = profile_df.drop(columns=metadata_columns, errors="ignore")
+metadata_columns = [x for x in train_profile_df.columns if "metadata" in x.lower()]
+terminal_column_names = [x for x in train_profile_df.columns if "Terminal" in x]
+train_features_df = train_profile_df.drop(columns=metadata_columns, errors="ignore")
+test_features_df = test_profile_df.drop(columns=metadata_columns, errors="ignore")
 
 
 # In[9]:
@@ -151,24 +160,31 @@ for i, model_name in enumerate(models_dict["model_name"]):
     print(f"Processing model {i + 1}/{len(models_dict['model_name'])}: {model_name}")
     print(models_dict["feature"][i])
     model = joblib.load(models_dict["model_path"][i])
-    if "all_terminal_features" not in str(models_dict["feature"][i]):
-        predictions = model.predict(features_df[model.feature_names_in_])
-        print(predictions.shape, single_feature_df[single_feature].shape)
+    for features_df, terminal_df, data_split in zip(
+        [train_features_df, test_features_df],
+        [train_terminal_df, test_terminal_df],
+        ["train", "test"],
+    ):
+        if "all_terminal_features" not in str(models_dict["feature"][i]):
+            predictions = model.predict(features_df[model.feature_names_in_])
+            print(predictions.shape, terminal_df[single_feature].shape)
 
-        mse, mae, r2 = model_stats_grab(predictions, single_feature_df[single_feature])
-        results_dict["shuffled"].append(models_dict["shuffled"][i])
-        results_dict["feature"].append(models_dict["feature"][i])
-    else:
-        predictions = model.predict(features_df[model.feature_names_in_])
-        print(predictions.shape, terminal_df.shape)
-        mse, mae, r2 = model_stats_grab(predictions, terminal_df)
-        results_dict["shuffled"].append(models_dict["shuffled"][i])
-        results_dict["feature"].append("all_terminal_features")
+            mse, mae, r2 = model_stats_grab(predictions, terminal_df[single_feature])
+            results_dict["shuffled"].append(models_dict["shuffled"][i])
+            results_dict["feature"].append(models_dict["feature"][i])
+            results_dict["data_split"].append(data_split)
+        else:
+            predictions = model.predict(features_df[model.feature_names_in_])
+            print(predictions.shape, terminal_df.shape)
+            mse, mae, r2 = model_stats_grab(predictions, terminal_df)
+            results_dict["shuffled"].append(models_dict["shuffled"][i])
+            results_dict["feature"].append("all_terminal_features")
+            results_dict["data_split"].append(data_split)
 
-    results_dict["model_name"].append(model_name)
-    results_dict["mse"].append(mse)
-    results_dict["mae"].append(mae)
-    results_dict["r2"].append(r2)
+        results_dict["model_name"].append(model_name)
+        results_dict["mse"].append(mse)
+        results_dict["mae"].append(mae)
+        results_dict["r2"].append(r2)
 results_df = pd.DataFrame(results_dict)
 results_df.to_parquet(predictions_save_path, index=False)
 results_df.head()
