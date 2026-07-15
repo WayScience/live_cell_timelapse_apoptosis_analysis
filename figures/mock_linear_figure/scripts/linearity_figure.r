@@ -16,6 +16,12 @@ source("../../../utils/r_themes.r")
 intensity_features_file_path <- file.path(
     "../../../1.ground_truth/data/0.ground_truth/annexinv_intensity_features_df.parquet"
 )
+figure_file_path <- file.path(
+    "../figures/linearity_plot.png"
+)
+if (!file.exists(figure_file_path)) {
+    dir.create(dirname(figure_file_path), recursive = TRUE)
+}
 # Read the intensity features
 intensity_features_df <- arrow::read_parquet(intensity_features_file_path)
 # tidy long
@@ -94,4 +100,5 @@ intensity_plot <- (
     + scale_fill_manual(values = color_palette_dose)
     + scale_color_manual(values = points_color_palette_for_dose)
 )
+ggsave(figure_file_path, intensity_plot, width = width, height = height, dpi = 600)
 intensity_plot
