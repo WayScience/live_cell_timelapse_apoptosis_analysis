@@ -590,8 +590,8 @@ mse_plot <- mse_plot + theme(legend.position = "none")
 
 layout <- "
 AABB
-CCDD
-EEEE
+CCCC
+DDEE
 "
 height <- 17
 width <- 14
@@ -601,13 +601,14 @@ final_plot <- (
     wrap_elements(full = workflow_figure_raster)
 
     + wrap_elements(full = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot)
+    + wrap_elements(full = pca_over_time_plot)
     + mse_plot
     + r2_plot
-    + wrap_elements(full = pca_over_time_plot)
+
 
    + plot_layout(
         design = layout,
-        heights = c(1, 0.5, 1),   # relative height of each row (A/B/C row, D row, E row)
+        heights = c(1, 1.2, 0.5),   # relative height of each row (A/B/C row, D row, E row)
         widths  = c(1, 1, 1, 1) # relative width of each column
       )
     + plot_annotation(tag_levels = 'A')
