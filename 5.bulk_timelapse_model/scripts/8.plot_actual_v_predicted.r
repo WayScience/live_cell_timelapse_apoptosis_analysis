@@ -166,14 +166,14 @@ actual_vs_predicted_plot <- (
         )
     )
     + geom_point(size = 7, alpha = 0.7)
-    + labs(x = "Actual", y = "Predicted")
+    + labs(x = "Actual Upper Quartile Intensity\nof Annexin V in the Cytoplasm", y = "Predicted Upper Quartile Intensity\nof Annexin V in the Cytoplasm")
     + scale_color_manual(values = color_palette_dose)
     # + dose_guides_color
     + theme(
         # axis tick labels
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
     )
-    + guides(color = guide_legend(title = "Dose", override.aes = list(size = 3)))
+    + guides(color = guide_legend(title = "Dose", override.aes = list(size = 3, alpha = 1)))
        + facet_wrap(data_split~shuffled)
     + xlim(
         global_square_min,
