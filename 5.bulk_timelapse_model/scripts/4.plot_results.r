@@ -497,6 +497,8 @@ mse_plot <- (
 )
 mse_plot
 
+df
+
 single_feature_train_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Train" & df$shuffled == "Not shuffled"] %>% round(2)
 single_feature_test_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Test" & df$shuffled == "Not shuffled"] %>% round(2)
 single_feature_train_shuffled_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Train" & df$shuffled == "Shuffled"] %>% round(2)
@@ -634,19 +636,17 @@ global_square_max <- if (non_shuffled_x_max > non_shuffled_y_max) {
 } else {
     non_shuffled_y_max
 }
-r2_df <- merged_results %>%
-  group_by(data_split, shuffled) %>%
-  summarise(
-    r2 = cor(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_actual,
-             Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_predicted)^2,
-    .groups = "drop"
-  ) %>%
-  mutate(
-    label = paste0("R² = ", round(r2, 3)),
-    x = global_square_min + 0.05 * (global_square_max - global_square_min),  # near left edge
-    y = global_square_max - 0.05 * (global_square_max - global_square_min)  # near top edge
-  )
 
+# get the r2 for the shuffled and non shuffled data
+r2_df <- df %>%
+  group_by(data_split, shuffled) %>%
+  filter(feature == "AnnexinV\nsingle feature")
+r2_df <- r2_df %>%
+    mutate(
+        x = global_square_min,
+        y = global_square_max,
+        label = paste0("R² = ", round(r2, 3))
+    )
 
 
 # plot the actual vs the predicted values
