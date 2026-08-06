@@ -645,7 +645,7 @@ r2_df <- r2_df %>%
     mutate(
         x = global_square_min,
         y = global_square_max,
-        label = paste0("R² = ", round(r2, 3))
+        label = paste0("R² = ", round(r2, 2))
     )
 
 
@@ -690,7 +690,7 @@ actual_vs_predicted_plot <- (
 
 
     + geom_text(data = r2_df, aes(x = x, y = y, label = label),
-            inherit.aes = FALSE, size = 4.5, hjust = 0, vjust = 1)
+            inherit.aes = FALSE, size = 6, hjust = 0, vjust = 1)
 
 )
 ggsave("../figures/actual_vs_predicted.png", actual_vs_predicted_plot, width = width, height = height, dpi = 600)
