@@ -4,7 +4,7 @@ if (!requireNamespace("patchwork", quietly = TRUE)) {
     devtools::install_github("thomasp85/patchwork")
 }
 for (pkg in c(
-    "ggplot2", "dplyr", "patchwork", "ggplotify"
+    "ggplot2", "dplyr", "patchwork", "ggplotify", "ggh4x"
     )) {
     # load the package quietly
     suppressPackageStartupMessages(
@@ -67,10 +67,6 @@ actual_results_single_annexinV <- rbind(actual_results_single_annexinV, actual_r
 actual_results$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual_results) / 2)
 actual_results_single_annexinV$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual_results_single_annexinV) / 2)
 
-
-head(subset_results)
-
-head(actual_results)
 
 # merge the two dataframes on the columns "Metadata_Time" and "Metadata_dose" Metadata_Well
 
@@ -450,8 +446,6 @@ workflow_figure_raster <- as.ggplot(
 #     )
 workflow_figure_raster
 
-df
-
 performances_file_path <- file.path("..", "results", "model_performances.parquet")
 df <- arrow::read_parquet(performances_file_path)
 df$feature <- gsub("all_terminal_features", "All features", df$feature)
@@ -469,86 +463,240 @@ options(repr.plot.width = width, repr.plot.height = height)
 # shared color mapping: All features = blue, single feature = orange
 feature_colors <- c("All features" = "#39B0E5", "AnnexinV\nsingle feature" = "#EA5125")
 
+strip_colors <- strip_themed(
+  background_x = elem_list_rect(fill = c("#39B0E5", "#EA5125"))  # order matches facet levels
+)
+
 mse_plot <- (
-    ggplot(df, aes(x = feature, y = mse, fill = feature, alpha = shuffled, linetype = shuffled))
+    ggplot(df, aes(x = data_split, y = mse, fill = feature, alpha = shuffled, linetype = shuffled))
     + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
     + theme_bw()
     + labs(
         x = "Feature Set",
         y = "Mean Squared Error"
     )
-    + theme(
-        text = element_text(size = 18),
-        legend.key.size = unit(1, "lines")
-    )
-    + scale_fill_manual(values = feature_colors, name = "Feature Set")
+    # + theme(
+    #     text = element_text(size = 18),
+    #     legend.key.size = unit(1, "lines")
+    # )
+    + scale_fill_manual(values = feature_colors, name = "Feature Set", guide = "none")
     + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
     + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
     + guides(
-        fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
         alpha = guide_legend(override.aes = list(fill = "grey50")),
         linetype = guide_legend(override.aes = list(fill = "grey50"))
     )
-    + facet_wrap(~data_split)
-
+    + theme(strip.text = element_text(color = "black"))  # keep text readable
+    + facet_wrap2(~feature, strip = strip_colors)
+    + theme(
+        text = element_text(size = 18),
+        legend.key.size = unit(1, "lines"),
+        legend.key.height = unit(0.8, "lines")   # add this
+    )
+    + theme(legend.text = element_text(vjust = 0.5))
 )
 mse_plot
 
-# r2_plot <- (
-#     ggplot(df, aes(x = feature, y = r2, fill = feature, alpha = shuffled, linetype = shuffled))
-#     + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
-#     + theme_bw()
-#     + labs(
-#         x = "Feature Set",
-#         y = expression(R^2)
-#     )
-#     + ylim(min(df$r2) - 0.1, 1)
-#     + theme(
-#         text = element_text(size = 18),
-#         legend.key.size = unit(1, "lines")
-#     )
-#     + scale_fill_manual(values = feature_colors, name = "Feature Set")
-#     + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
-#     + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
-#     + guides(
-#         fill = guide_legend(override.aes = list(alpha = 1, linetype = "solid")),
-#         alpha = guide_legend(override.aes = list(fill = "grey50")),
-#         linetype = guide_legend(override.aes = list(fill = "grey50"))
-#     )
-#     + facet_wrap(~data_split)
-# )
-# r2_plot
-r2_plot <- (
-    ggplot(df, aes(x = feature, y = r2, fill = feature, alpha = shuffled, linetype = shuffled))
-    + geom_bar(stat = "identity", position = position_dodge(), color = "black", linewidth = 0.7)
-    + theme_bw()
-    + labs(
-        x = "Feature Set",
-        y = expression(R^2)
+single_feature_train_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Train" & df$shuffled == "Not shuffled"] %>% round(2)
+single_feature_test_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Test" & df$shuffled == "Not shuffled"] %>% round(2)
+single_feature_train_shuffled_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Train" & df$shuffled == "Shuffled"] %>% round(2)
+single_feature_test_shuffled_r2 <- df$r2[df$feature == "AnnexinV\nsingle feature" & df$data_split == "Test" & df$shuffled == "Shuffled"] %>% round(2)
+
+
+actual_results_file_path <- file.path("../../data/CP_aggregated/endpoints/aggregated_profile.parquet")
+actual_results <- arrow::read_parquet(actual_results_file_path)
+actual_results$Metadata_Time <- 13
+actual_results$shuffled <- "not_shuffled"
+train_test_splits_file_path <- file.path("../data_splits/train_test_wells.parquet")
+# prepend Terminal to each non metadata column name
+actual_results <- actual_results %>%
+  rename_with(~ paste0("Terminal_", .), -c(Metadata_Time, Metadata_dose, Metadata_Well, shuffled))
+actual_results$Metadata_shuffled <- "not_shuffled"
+train_test_splits <- arrow::read_parquet(train_test_splits_file_path)
+columns_to_keep <- colnames(actual_results)
+
+
+
+results_file_path <- file.path("../results/all_terminal_features.parquet")
+results <- arrow::read_parquet(results_file_path)
+
+subset_results <- results[, colnames(results) %in% columns_to_keep]
+# make dose a double
+subset_results$Metadata_dose <- as.double(subset_results$Metadata_dose)
+
+# drop the singlecells, compound, and control columns
+actual_results <- actual_results %>%
+  select(-c(
+    'Terminal_Metadata_number_of_singlecells',
+  'Terminal_Metadata_plate','Terminal_Metadata_compound','Terminal_Metadata_control'))
+metadata_columns <- colnames(actual_results)[
+  grepl("Metadata", colnames(actual_results)) &  # Contains "Metadata"
+  !grepl("Terminal", colnames(actual_results))
+]
+
+actual_results_single_annexinV <- actual_results %>%
+  select(c("Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV", "Metadata_shuffled", "Metadata_Well", "Metadata_dose"))
+
+single_feature <- "Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV"
+
+
+
+# rename metadata_shuffled to shuffled
+actual_results$shuffled <- actual_results$Metadata_shuffled
+actual_results_single_annexinV$shuffled <- actual_results$Metadata_shuffled
+# drop the Metadata_shuffled column
+actual_results <- actual_results %>%
+  select(-Metadata_shuffled)
+actual_results_single_annexinV <- actual_results_single_annexinV %>%
+  select(-Metadata_shuffled)
+# duplicate the actual results so that there are copies for the
+# train model, test model, shuffled train model, and shuffled test model
+actual_results <- rbind(actual_results, actual_results)
+actual_results_single_annexinV <- rbind(actual_results_single_annexinV, actual_results_single_annexinV)
+# add a column to indicate which model the row is for
+actual_results$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual_results) / 2)
+actual_results_single_annexinV$shuffled <- rep(c("shuffled", "not_shuffled"), each = nrow(actual_results_single_annexinV) / 2)
+# # rename the single feature column to have a suffix of "actual"
+actual_results_single_annexinV <- actual_results_single_annexinV %>% rename(!!paste0(single_feature, "_actual") := single_feature)
+
+# get only the last timepoints
+subset_results <- subset_results %>% slice_max(order_by = Metadata_Time, n = 1)
+# get only the single feature and the metadata columns
+subset_results_single_feature <- subset_results %>% select(c(Metadata_Well, Metadata_dose, shuffled, single_feature))
+# rename the single feature column to have a suffix of "predicted"
+subset_results_single_feature <- subset_results_single_feature %>% rename(!!paste0(single_feature, "_predicted") := single_feature)
+# merge the subset results and actual results
+merged_results <- merge(subset_results_single_feature, actual_results_single_annexinV, by = c("Metadata_Well", "Metadata_dose", "shuffled"))
+
+
+
+# merge the two dataframes on the columns "Metadata_Time" and "Metadata_dose" Metadata_Well
+
+merged_results$Metadata_dose <- as.numeric(merged_results$Metadata_dose)
+merged_results$Metadata_dose <- factor(
+    merged_results$Metadata_dose,
+    levels = c(
+        '0',
+        '0.61',
+        '1.22',
+        '2.44',
+        '4.88',
+        '9.77',
+        '19.53',
+        '39.06',
+        '78.13',
+        '156.25'
     )
-    + ylim(min(df$r2) - 0.1, 1)
-    + theme(
-        text = element_text(size = 18),
-        legend.key.size = unit(1, "lines")
-    )
-    + scale_fill_manual(
-        values = feature_colors,
-        name = "Feature Set",
-        labels = function(x) gsub("\n", " ", x)  # keep legend labels single-line
-      )
-    + scale_alpha_manual(values = c("Not shuffled" = 1, "Shuffled" = 0.4), name = "Model Type")
-    + scale_linetype_manual(values = c("Not shuffled" = "solid", "Shuffled" = "dashed"), name = "Model Type")
-    + guides(
-        fill = guide_legend(
-          override.aes = list(alpha = 1, linetype = "solid"),
-          keyheight = unit(1, "lines")   # forces key box to stay uniform height
-        ),
-        alpha = guide_legend(override.aes = list(fill = "grey50")),
-        linetype = guide_legend(override.aes = list(fill = "grey50"))
-    )
-    + facet_wrap(~data_split)
 )
-r2_plot
+merged_results$shuffled <- gsub("shuffled", "Shuffled", merged_results$shuffled)
+merged_results$shuffled <- gsub("not_Shuffled", "Not shuffled", merged_results$shuffled)
+
+merged_results <- merge(
+    merged_results,
+    train_test_splits,
+    by = c("Metadata_Well")
+)
+merged_results$data_split <- gsub("train", "Train", merged_results$data_split)
+merged_results$data_split <- gsub("test", "Test", merged_results$data_split)
+merged_results$data_split <- factor(merged_results$data_split, levels = c("Test", "Train"))
+
+
+# get the non shuffled min and max
+non_shuffled_x_min <- merged_results %>%
+    filter(shuffled == "Not shuffled") %>%
+    pull(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_actual) %>%
+    min() %>% round(2)
+
+non_shuffled_x_max <- merged_results %>%
+    filter(shuffled == "Not shuffled") %>%
+    pull(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_actual) %>%
+    max() %>% round(2)
+
+non_shuffled_y_min <- merged_results %>%
+    filter(shuffled == "Not shuffled") %>%
+    pull(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_predicted) %>%
+    min() %>% round(2)
+
+non_shuffled_y_max <- merged_results %>%
+    filter(shuffled == "Not shuffled") %>%
+    pull(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_predicted) %>%
+    max() %>% round(2)
+
+# get the min and max for the shuffled data
+global_square_min <- if (non_shuffled_x_min < non_shuffled_y_min) {
+    non_shuffled_x_min
+} else {
+    non_shuffled_y_min
+}
+
+global_square_max <- if (non_shuffled_x_max > non_shuffled_y_max) {
+    non_shuffled_x_max
+} else {
+    non_shuffled_y_max
+}
+r2_df <- merged_results %>%
+  group_by(data_split, shuffled) %>%
+  summarise(
+    r2 = cor(Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_actual,
+             Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_predicted)^2,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    label = paste0("R² = ", round(r2, 3)),
+    x = global_square_min + 0.05 * (global_square_max - global_square_min),  # near left edge
+    y = global_square_max - 0.05 * (global_square_max - global_square_min)  # near top edge
+  )
+
+
+
+# plot the actual vs the predicted values
+actual_vs_predicted_plot <- (
+    ggplot(merged_results, aes(
+        x = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_actual,
+        y = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_predicted,
+        color = Metadata_dose
+        )
+    )
+    + geom_point(size = 4, alpha = 0.7)
+    + labs(x = "Actual Upper Quartile Intensity of\nAnnexin V in the Cytoplasm", y = "Predicted Upper Quartile\nIntensity of Annexin V \nin the Cytoplasm")
+    + scale_color_manual(values = color_palette_dose)
+    + guides(color = guide_legend(title = "Dose", override.aes = list(size = 3, alpha = 1)))
+       + facet_grid(data_split~shuffled)
+    + xlim(
+        global_square_min,
+        global_square_max
+    )
+    + ylim(
+        global_square_min,
+        global_square_max
+    )
+    # make the plot square
+    + theme(
+        aspect.ratio = 1
+    )
+    #  plot the y=x line as a dotted line
+    + geom_abline(slope = 1, intercept = 0, color = "black", size = 1, linetype = "dotted")
+    + theme_bw()
+    + plot_themes
+    + theme(
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        strip.background = element_rect(fill = "#EA5125", color = NA),
+        strip.text = element_text(color = "black", size=16)  # adjust if needed for contrast
+    )
+    # add text to each facet
+
+
+    + geom_text(data = r2_df, aes(x = x, y = y, label = label),
+            inherit.aes = FALSE, size = 4.5, hjust = 0, vjust = 1)
+
+)
+ggsave("../figures/actual_vs_predicted.png", actual_vs_predicted_plot, width = width, height = height, dpi = 600)
+actual_vs_predicted_plot <- actual_vs_predicted_plot + theme(legend.position = "none")
+actual_vs_predicted_plot
+
 
 Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot <- Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot + theme(legend.position = "none")
 pca1_plot <- pca1_plot + theme(legend.position = "none")
@@ -586,12 +734,10 @@ ggsave(
 )
 
 
-mse_plot <- mse_plot + theme(legend.position = "none")
-
 layout <- "
-AABB
-CCCC
-DDEE
+AAABBB
+CCCCCC
+DDDEEE
 "
 height <- 17
 width <- 14
@@ -602,13 +748,14 @@ final_plot <- (
 
     + wrap_elements(full = Terminal_Cytoplasm_Intensity_UpperQuartileIntensity_AnnexinV_plot)
     + wrap_elements(full = pca_over_time_plot)
-    + mse_plot
-    + r2_plot
+    + wrap_elements(full = mse_plot)
+    # + r2_plot
+    + wrap_elements(full = actual_vs_predicted_plot)
 
 
    + plot_layout(
         design = layout,
-        heights = c(1, 1.2, 0.5),   # relative height of each row (A/B/C row, D row, E row)
+        heights = c(1, 1.2, 0.8),   # relative height of each row (A/B/C row, D row, E row)
         widths  = c(1, 1, 1, 1) # relative width of each column
       )
     + plot_annotation(tag_levels = 'A')
