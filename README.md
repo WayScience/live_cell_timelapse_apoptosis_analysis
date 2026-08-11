@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/780166666.svg)](https://doi.org/10.5281/zenodo.17419411)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17419411.svg)](https://doi.org/10.5281/zenodo.17419411)
+
 # Live Cell Timelapse Apoptosis Analysis
 
 This repository contains the code to analyze live cell timelapse microscopy data of apoptosis in HeLa cells.
